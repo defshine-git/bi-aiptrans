@@ -1,16 +1,3 @@
-<!--
-  Bilingual Transcriber - Frontend (GitHub Pages 配置版)
-  ============================================================
-  ■ 配置前提
-    - 本ファイルを GitHub Pages（https://<user>.github.io/<repo>/）に配置して利用する。
-    - GitHub Pages は HTTPS 配信のためマイク入力が可能。localhost でも動作。
-    - GAS 埋め込み実行ではないため google.script.run は使用せず、全て fetch 経由で GAS Web App を呼ぶ。
-  ■ 必須設定
-    - 右上 ⚙️ 設定 →「GAS Web App URL」に、デプロイ済みウェブアプリURL（/exec）を登録。
-    - GAS 側デプロイのアクセス権は「全員」にする。
-  ■ CORS 対応（Code.gs の doPost/parseRequest_ と整合）
-    - 本ページからの POST は Content-Type: text/plain;charset=utf-8（プリフライト回避）＋ redirect:'follow' を使用。
-============================================================ -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -33,7 +20,13 @@
       --header-height: 60px;
       --footer-height: 70px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
@@ -45,6 +38,8 @@
       overflow: hidden;
       padding-top: env(safe-area-inset-top, 0px);
     }
+
+    /* Header Bar */
     header {
       height: var(--header-height);
       background-color: var(--primary);
@@ -56,83 +51,501 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
       z-index: 10;
     }
-    .brand-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .status-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: #95A5A6; }
-    .status-dot.recording { background-color: var(--danger); box-shadow: 0 0 6px var(--danger); animation: pulse 1.2s infinite; }
-    @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.8; } 50% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.8; } }
-    .header-controls { display: flex; align-items: center; gap: 10px; }
-    .control-select { background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer; outline: none; }
-    .icon-btn { background: rgba(255,255,255,0.2); border: none; color: #FFF; padding: 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: background 0.2s; }
-    .icon-btn:hover { background: rgba(255,255,255,0.35); }
-    main { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .empty-state { margin: auto; text-align: center; color: var(--text-muted); padding: 40px 20px; }
-    .empty-state h3 { margin-bottom: 8px; color: var(--primary); }
-    .transcript-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px; animation: fadeIn 0.3s ease; position: relative; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    .card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; flex-wrap: wrap; gap: 6px; }
-    .meta-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .speaker-tag { background: #EAECEE; color: #34495E; padding: 2px 8px; border-radius: 12px; font-weight: 700; font-size: 0.72rem; cursor: pointer; user-select: none; border: 1px solid #BDC3C7; transition: background 0.15s; }
-    .speaker-tag:hover { background: #D5DBDB; }
-    .speaker-tag.auditor { background: #D4EFDF; color: #196F3D; border-color: #A9DFBF; }
-    .speaker-tag.yard { background: #FCF3CF; color: #B7950B; border-color: #F9E79F; }
-    .engine-tag { background: #EBF3FB; color: var(--primary-light); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-    .card-actions { display: flex; align-items: center; gap: 6px; }
-    .card-action-btn { background: none; border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 6px; font-size: 0.75rem; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; gap: 3px; transition: all 0.15s; }
-    .card-action-btn:hover { background: #EAECEE; color: var(--text-main); }
-    .card-action-btn.delete-btn:hover { background: #FDEDEC; color: var(--danger); border-color: #FADBD8; }
-    .card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .text-column { display: flex; flex-direction: column; gap: 4px; }
-    .column-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
-    .original-text { font-size: 0.95rem; line-height: 1.5; color: #1A252F; word-break: break-word; }
-    .translated-text { font-size: 0.95rem; line-height: 1.5; color: var(--primary); font-weight: 500; min-height: 24px; word-break: break-word; }
-    .translating-spinner { color: var(--text-muted); font-style: italic; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; }
-    .edit-container { display: none; flex-direction: column; gap: 8px; margin-top: 6px; }
-    .edit-container.active { display: flex; }
-    .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .edit-textarea { width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--primary-light); border-radius: 4px; font-size: 0.9rem; font-family: inherit; resize: vertical; }
-    .edit-btn-row { display: flex; justify-content: flex-end; gap: 8px; }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #95A5A6;
+    }
+    .status-dot.recording {
+      background-color: var(--danger);
+      box-shadow: 0 0 6px var(--danger);
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.8; }
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-select {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: #FFF;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Main Log Container */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--text-muted);
+      padding: 40px 20px;
+    }
+    .empty-state h3 {
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    /* Transcript Card (Responsive) */
+    .transcript-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: fadeIn 0.3s ease;
+      position: relative;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-bottom: 1px dashed var(--border-color);
+      padding-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .meta-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .speaker-tag {
+      background: #EAECEE;
+      color: #34495E;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.72rem;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid #BDC3C7;
+      transition: background 0.15s;
+    }
+    .speaker-tag:hover {
+      background: #D5DBDB;
+    }
+    .speaker-tag.auditor {
+      background: #D4EFDF;
+      color: #196F3D;
+      border-color: #A9DFBF;
+    }
+    .speaker-tag.yard {
+      background: #FCF3CF;
+      color: #B7950B;
+      border-color: #F9E79F;
+    }
+
+    .engine-tag {
+      background: #EBF3FB;
+      color: var(--primary-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-action-btn {
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s;
+    }
+    .card-action-btn:hover {
+      background: #EAECEE;
+      color: var(--text-main);
+    }
+    .card-action-btn.delete-btn:hover {
+      background: #FDEDEC;
+      color: var(--danger);
+      border-color: #FADBD8;
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .text-column {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .column-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .original-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #1A252F;
+      word-break: break-word;
+    }
+
+    .translated-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--primary);
+      font-weight: 500;
+      min-height: 24px;
+      word-break: break-word;
+    }
+
+    .translating-spinner {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* In-place Editing Form */
+    .edit-container {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .edit-container.active {
+      display: flex;
+    }
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .edit-textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 8px;
+      border: 1px solid var(--primary-light);
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: vertical;
+    }
+    .edit-btn-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* Tablet (iPad) - Optimized Tabletop Layout */
     @media (min-width: 768px) and (max-width: 1023px) {
-      .original-text, .translated-text { font-size: 1.05rem; }
-      .card-body { gap: 20px; }
+      .original-text, .translated-text {
+        font-size: 1.05rem;
+      }
+      .card-body {
+        gap: 20px;
+      }
     }
+
+    /* Mobile (Smartphones) - Stacked Cards */
     @media (max-width: 767px) {
-      header { flex-direction: column; align-items: flex-start; height: auto; padding: 10px 14px; gap: 8px; }
-      .header-controls { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; }
-      .control-select { flex: 1 1 calc(50% - 6px); font-size: 0.78rem; padding: 6px 8px; }
-      .card-body, .edit-grid { grid-template-columns: 1fr; gap: 10px; }
-      .translated-text { padding-top: 6px; border-top: 1px solid var(--border-color); }
-      footer { flex-direction: column; height: auto; gap: 10px; padding: 10px 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px; }
-      .btn-record { width: 100%; justify-content: center; padding: 14px; font-size: 1.05rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-      .footer-btn-group { width: 100%; justify-content: space-between; }
-      .footer-btn-group .btn { padding: 8px 10px; font-size: 0.8rem; flex: 1; justify-content: center; }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        height: auto;
+        padding: 10px 14px;
+        gap: 8px;
+      }
+      .header-controls {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: space-between;
+      }
+      .control-select {
+        flex: 1 1 calc(50% - 6px);
+        font-size: 0.78rem;
+        padding: 6px 8px;
+      }
+      .card-body, .edit-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .translated-text {
+        padding-top: 6px;
+        border-top: 1px solid var(--border-color);
+      }
+      footer {
+        flex-direction: column;
+        height: auto;
+        gap: 10px;
+        padding: 10px 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px;
+      }
+      .btn-record {
+        width: 100%;
+        justify-content: center;
+        padding: 14px;
+        font-size: 1.05rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      .footer-btn-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .footer-btn-group .btn {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+        flex: 1;
+        justify-content: center;
+      }
     }
-    footer { background: #FFF; border-top: 1px solid var(--border-color); padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)) 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-    .footer-btn-group { display: flex; align-items: center; gap: 8px; }
-    .btn { padding: 10px 16px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
-    .btn-record { background: var(--primary); color: #FFF; }
-    .btn-record.active { background: var(--danger); box-shadow: 0 0 10px rgba(231,76,60,0.4); }
-    .btn-save { background: var(--success); color: #FFF; }
-    .btn-save:disabled { background: #BDC3C7; cursor: not-allowed; }
-    .btn-clear { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); }
-    .btn-clear:hover { background: #EEE; }
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
-    .modal-overlay.open { display: flex; }
-    .modal-content { background: #FFF; border-radius: 8px; padding: 24px; width: 90%; max-width: 520px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-    .modal-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
-    .form-group input { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-    .live-preview-box { background: #FFFFFF; border: 2px solid #2A52BE; border-radius: 8px; padding: 12px 16px; box-shadow: 0 4px 12px rgba(42,82,190,0.15); animation: pulseBorder 2s infinite; display: flex; flex-direction: column; gap: 6px; }
-    @keyframes pulseBorder { 0% { border-color: #2A52BE; box-shadow: 0 0 4px rgba(42,82,190,0.2); } 50% { border-color: #E67E22; box-shadow: 0 0 10px rgba(230,126,34,0.3); } 100% { border-color: #2A52BE; box-shadow: 0 0 4px rgba(42,82,190,0.2); } }
-    .live-preview-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 700; color: #2A52BE; }
-    .live-indicator { display: inline-flex; align-items: center; gap: 6px; }
-    .live-pulse { width: 8px; height: 8px; border-radius: 50%; background: #E74C3C; animation: pulse 1s infinite; }
-    .live-preview-text { font-size: 1.05rem; line-height: 1.5; color: #1B365D; font-style: italic; min-height: 24px; word-break: break-word; }
+
+    /* Footer Action Bar */
+    footer {
+      background: #FFF;
+      border-top: 1px solid var(--border-color);
+      padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)) 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .footer-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-record {
+      background: var(--primary);
+      color: #FFF;
+    }
+    .btn-record.active {
+      background: var(--danger);
+      box-shadow: 0 0 10px rgba(231,76,60,0.4);
+    }
+
+    .btn-save {
+      background: var(--success);
+      color: #FFF;
+    }
+    .btn-save:disabled {
+      background: #BDC3C7;
+      cursor: not-allowed;
+    }
+
+    .btn-clear {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+    .btn-clear:hover {
+      background: #EEE;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #FFF;
+      border-radius: 8px;
+      padding: 24px;
+      width: 90%;
+      max-width: 520px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+    .form-group input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  
+    /* Live Preview Box (gemini-3.5-transcribe-live) */
+    .live-preview-box {
+      background: #FFFFFF;
+      border: 2px solid #2A52BE;
+      border-radius: 8px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 12px rgba(42, 82, 190, 0.15);
+      animation: pulseBorder 2s infinite;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    @keyframes pulseBorder {
+      0% { border-color: #2A52BE; box-shadow: 0 0 4px rgba(42,82,190,0.2); }
+      50% { border-color: #E67E22; box-shadow: 0 0 10px rgba(230,126,34,0.3); }
+      100% { border-color: #2A52BE; box-shadow: 0 0 4px rgba(42,82,190,0.2); }
+    }
+    .live-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #2A52BE;
+    }
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #E74C3C;
+      animation: pulse 1s infinite;
+    }
+    .live-preview-text {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: #1B365D;
+      font-style: italic;
+      min-height: 24px;
+      word-break: break-word;
+    }
+
   </style>
 </head>
 <body>
+
   <!-- Header -->
   <header>
     <div class="brand-title">
@@ -148,6 +561,7 @@
         <option value="EN_TO_JA">固定: 英語 ➔ 日本語</option>
         <option value="JA_TO_EN">固定: 日本語 ➔ 英語</option>
       </select>
+
       <select id="categorySelect" class="control-select" title="監査分野の選択">
         <option value="HKC">分野: HKC (香港条約)</option>
         <option value="EU-SRR">分野: EU-SRR (EU規則)</option>
@@ -155,17 +569,21 @@
         <option value="IHM">分野: IHM (インベントリ)</option>
         <option value="Common">分野: 全般・共通</option>
       </select>
+
       <select id="engineSelect" class="control-select" title="認識エンジンの選択">
         <option value="GEMINI_LIVE" selected>Engine: Gemini 3.5 Live (リアルタイム・主系)</option>
         <option value="GEMINI_UNARY">Engine: Gemini 3.5 (バッチ認識)</option>
         <option value="WEB_SPEECH">Engine: Web Speech (L1)</option>
         <option value="LOCAL_WHISPER">Engine: Local Whisper (L2)</option>
       </select>
+
       <button id="settingsBtn" class="icon-btn" title="設定">⚙️</button>
     </div>
   </header>
+
   <!-- Main Log Area -->
   <main id="logContainer">
+    <!-- Live Transcription Interim Preview -->
     <div id="livePreviewContainer" class="live-preview-box" style="display:none;">
       <div class="live-preview-header">
         <span class="live-indicator"><span class="live-pulse"></span> 🔴 LIVE リアルタイム音声認識中...</span>
@@ -173,21 +591,30 @@
       </div>
       <div id="livePreviewText" class="live-preview-text">話しかけてください...</div>
     </div>
+
     <div class="empty-state" id="emptyState">
       <h3>対面ミーティング音声認識を開始してください</h3>
       <p>下の「録音開始」ボタンを押すと、マイクからの発話を自動認識して並列表示します。</p>
       <p style="font-size:0.8rem; margin-top:8px;">※ PC環境では各カードの✏️ボタンから発話テキストの編集・再翻訳・BacklogへのMarkdown転記が可能です。</p>
     </div>
   </main>
+
   <!-- Footer Action Bar -->
   <footer>
-    <button id="recordBtn" class="btn btn-record"><span>🎤 録音開始</span></button>
+    <button id="recordBtn" class="btn btn-record">
+      <span>🎤 録音開始</span>
+    </button>
     <div class="footer-btn-group">
-      <button id="copyMdBtn" class="btn btn-clear" title="Markdown形式で議事録をクリップボードにコピー"><span>📋 コピー (Markdown)</span></button>
+      <button id="copyMdBtn" class="btn btn-clear" title="Markdown形式で議事録をクリップボードにコピー">
+        <span>📋 コピー (Markdown)</span>
+      </button>
       <button id="clearBtn" class="btn btn-clear">ログクリア</button>
-      <button id="saveBtn" class="btn btn-save" disabled><span>💾 Google ドキュメントに保存</span></button>
+      <button id="saveBtn" class="btn btn-save" disabled>
+        <span>💾 Google ドキュメントに保存</span>
+      </button>
     </div>
   </footer>
+
   <!-- Settings Modal -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-content">
@@ -206,8 +633,7 @@
       <div class="form-group">
         <label for="directApiKeyInput">Gemini API キー (直接接続用・任意):</label>
         <input type="password" id="directApiKeyInput" placeholder="AIzaSy...">
-        <small style="color:var(--text-muted); font-size:0.75rem;">※ 未入力の場合は GAS から一時トークン（Ephemeral Token）を安全に自動取得します（<b>推奨</b>）</small>
-        <small style="color:var(--danger); font-size:0.72rem; display:block; margin-top:2px;">⚠️ GitHub Pages は公開URLです。APIキーは端末の localStorage に平文保存されるため、共用端末での直接入力は避けてください。</small>
+        <small style="color:var(--text-muted); font-size:0.75rem;">※ 未入力の場合は GAS から一時トークン（Ephemeral Token）を安全に自動取得します</small>
       </div>
       <div class="form-group" id="gasApiUrlGroup">
         <label for="gasApiUrlInput">GAS Web App URL (GitHub Pages / 外部実行時必須):</label>
@@ -220,7 +646,9 @@
       </div>
       <div class="form-group" style="border-top:1px solid var(--border-color); padding-top:12px;">
         <label>📱 スマホ連携 (QRコード・共有URL):</label>
-        <button id="sharePhoneBtn" class="btn btn-clear" style="font-size:0.8rem; padding:6px 12px; width:100%; justify-content:center;">📲 スマホ設定用URLを生成 / QRコード表示</button>
+        <button id="sharePhoneBtn" class="btn btn-clear" style="font-size:0.8rem; padding:6px 12px; width:100%; justify-content:center;">
+          📲 スマホ設定用URLを生成 / QRコード表示
+        </button>
         <div id="sharePhoneArea" style="display:none; margin-top:10px; text-align:center; background:#F8FAFC; padding:12px; border-radius:6px;">
           <div id="qrCodeContainer" style="margin-bottom:8px;"></div>
           <input type="text" id="shareUrlInput" readonly style="width:100%; font-size:0.75rem; padding:4px 6px; margin-bottom:6px; text-align:center; border:1px solid var(--border-color); border-radius:4px;">
@@ -238,7 +666,9 @@
       </div>
       <div class="form-group" style="border-top:1px solid var(--border-color); padding-top:14px;">
         <label>専門用語辞書キャッシュの管理:</label>
-        <button id="refreshCacheBtn" class="btn btn-clear" style="font-size:0.8rem; padding:6px 12px;">🔄 辞書キャッシュ強制クリア</button>
+        <button id="refreshCacheBtn" class="btn btn-clear" style="font-size:0.8rem; padding:6px 12px;">
+          🔄 辞書キャッシュ強制クリア
+        </button>
         <div id="cacheResult" style="font-size:0.8rem; margin-top:4px; color:var(--success);"></div>
       </div>
       <div class="modal-actions">
@@ -246,10 +676,9 @@
       </div>
     </div>
   </div>
+
   <script>
-    // ============================================================
-    // State Management
-    // ============================================================
+    // --- State Management ---
     let isRecording = false;
     let audioContext = null;
     let mediaStream = null;
@@ -260,12 +689,15 @@
     let audioChunks = [];
     let transcriptStore = [];
     let webSpeechRecognition = null;
-    let speechDetected = false;
-    const SILENCE_THRESHOLD = -45;
-    const SILENCE_DURATION_MS = 1000;
-    const MAX_CHUNK_DURATION_MS = 14000;
+    let speechDetected = false; // VAD: 有音開始検知フラグ
+
+    const SILENCE_THRESHOLD = -45; // dB
+    const SILENCE_DURATION_MS = 1000; // 1秒の無音で発話区切り
+    const MAX_CHUNK_DURATION_MS = 14000; // 最大14秒で強制分割
+
     const SPEAKER_ROLES = ['Auditor (監査員)', 'Yard Rep (ヤード担当者)', 'Facility (施設側)', 'Other (その他)'];
 
+    // DOM Elements
     const recordBtn = document.getElementById('recordBtn');
     const saveBtn = document.getElementById('saveBtn');
     const clearBtn = document.getElementById('clearBtn');
@@ -287,36 +719,20 @@
     const testResult = document.getElementById('testResult');
     const refreshCacheBtn = document.getElementById('refreshCacheBtn');
     const cacheResult = document.getElementById('cacheResult');
+
     const isGasEnvironment = (typeof google !== 'undefined' && google.script && google.script.run);
     const gasApiUrlInput = document.getElementById('gasApiUrlInput');
     const directApiKeyInput = document.getElementById('directApiKeyInput');
     const livePreviewContainer = document.getElementById('livePreviewContainer');
     const livePreviewText = document.getElementById('livePreviewText');
+
     let liveWebSocket = null;
     let liveAudioContext = null;
     let liveMediaStream = null;
     let liveProcessor = null;
-    let isLiveReady = false;
-    let sessionRotationTimer = null;
-    let activeCustomVocabulary = [];
-
-    // ============================================================
-    // [FIX-1 / CORS] fetch 共通ラッパー
-    //   Code.gs の parseRequest_ が text/plain 受信に対応したことに合わせ、
-    //   - Content-Type: 'text/plain;charset=utf-8'（application/json はプリフライトが飛び GAS で弾かれる）
-    //   - redirect: 'follow'（GAS は成功時に 302 で googleusercontent へ遷移するため必須）
-    //   - mode: 'cors'
-    //   を明示する。全ての GAS 向け fetch はこの関数経由に統一。
-    // ============================================================
-    function postToGas(apiUrl, bodyObj) {
-      return fetch(apiUrl, {
-        method: 'POST',
-        mode: 'cors',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(bodyObj)
-      });
-    }
+    let isLiveReady = false;           // ① setup完了まで音声送信をガードするフラグ
+    let sessionRotationTimer = null;   // ② 10分制限対策のローテーションタイマー
+    let activeCustomVocabulary = [];   // ⑥ スプレッドシート辞書用語リスト
 
     // API呼び出しの統合ラッパー（GAS環境とローカル環境を自動判別）
     function callApi(action, payload, onSuccess, onFailure) {
@@ -333,22 +749,36 @@
           google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).refreshGlossaryCache();
         }
       } else {
+        // ローカル環境: fetch経由でGAS Web AppにPOST送信
         const apiUrl = localStorage.getItem('gas_api_url') || (gasApiUrlInput ? gasApiUrlInput.value.trim() : '');
         if (!apiUrl) {
-          onFailure(new Error('GAS Web App URLが未設定です。右上の⚙️設定からデプロイされたURLを登録してください。'));
+          const err = new Error('GAS Web App URLが未設定です。右上の⚙️設定からデプロイされたURLを登録してください。');
+          onFailure(err);
           return;
         }
-        postToGas(apiUrl, { action: action, payload: payload }) // [FIX-1] CORS対応の共通ラッパー経由
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.success === false && data.error) onFailure(new Error(data.error));
-            else onSuccess(data);
-          })
-          .catch(err => onFailure(err));
+        
+        // [修正] text/plain を明示してCORSのPreflight(OPTIONS)を回避
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify({ action: action, payload: payload })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.success === false && data.error) {
+            onFailure(new Error(data.error));
+          } else {
+            onSuccess(data);
+          }
+        })
+        .catch(err => onFailure(err));
       }
     }
 
-    // 初期化：URLパラメータ ?gas=... を検知して自動設定 (スマホQRコード読み取り対応)
+    // Load Local Storage Configuration & Cached Transcripts
+    // URLパラメータ ?gas=... を検知して自動設定 (スマホQRコード読み取り対応)
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const gasParam = urlParams.get('gas');
@@ -359,45 +789,29 @@
           if (gasApiUrlInput) gasApiUrlInput.value = decodedGas;
           window.history.replaceState({}, document.title, window.location.pathname);
           alert('✓ スマホ連携完了\nGAS Web App URLが自動設定されました。マイクを許可して録音を開始できます。');
-        } catch (e) { console.warn('Failed to parse gas param:', e); }
+        } catch (e) {
+          console.warn('Failed to parse gas param:', e);
+        }
       }
+
       const savedEndpoint = localStorage.getItem('local_whisper_url');
-      if (savedEndpoint) localEndpointInput.value = savedEndpoint;
+      if (savedEndpoint) {
+        localEndpointInput.value = savedEndpoint;
+      }
       const savedGasUrl = localStorage.getItem('gas_api_url');
-      if (savedGasUrl && gasApiUrlInput) gasApiUrlInput.value = savedGasUrl;
+      if (savedGasUrl && gasApiUrlInput) {
+        gasApiUrlInput.value = savedGasUrl;
+      }
       const savedApiKey = localStorage.getItem('gemini_api_key');
-      if (savedApiKey && directApiKeyInput) directApiKeyInput.value = savedApiKey;
+      if (savedApiKey && directApiKeyInput) {
+        directApiKeyInput.value = savedApiKey;
+      }
       const savedDirection = localStorage.getItem('trans_direction') || 'AUTO';
       if (directionSelect) directionSelect.value = savedDirection;
       if (modalDirectionSelect) modalDirectionSelect.value = savedDirection;
+
       loadTranscriptsFromCache();
-
-      // [GitHub Pages] GAS URL 未設定なら初回セットアップを促す（GH Pages では google.script.run が無いため必須）
-      const hasGasUrl = !!(localStorage.getItem('gas_api_url') || (gasApiUrlInput && gasApiUrlInput.value.trim()));
-      if (!isGasEnvironment && !hasGasUrl) {
-        if (settingsModal) settingsModal.classList.add('open');
-        showSetupBanner();
-      }
-      // [GitHub Pages] HTTPS でない場合はマイクが使えないため警告
-      if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        console.warn('マイク入力には HTTPS が必要です。GitHub Pages（https）でアクセスしてください。');
-      }
     });
-
-    // [GitHub Pages] 初回セットアップ用の案内バナー
-    function showSetupBanner() {
-      if (document.getElementById('setupBanner')) return;
-      const banner = document.createElement('div');
-      banner.id = 'setupBanner';
-      banner.style.cssText = 'background:#FEF9E7; border:1px solid #F9E79F; color:#7D6608; padding:10px 14px; margin:12px 16px 0; border-radius:6px; font-size:0.85rem; line-height:1.5;';
-      banner.innerHTML = '⚙️ <b>初回設定が必要です:</b> このアプリはバックエンド（GAS Web App）に接続して動作します。右上の ⚙️ 設定から <b>GAS Web App URL</b> を登録し、「GAS接続テスト」で疎通を確認してください。';
-      const mainEl = document.getElementById('logContainer');
-      if (mainEl) mainEl.prepend(banner);
-    }
-    function hideSetupBanner() {
-      const b = document.getElementById('setupBanner');
-      if (b) b.remove();
-    }
 
     // GAS Web App 接続テストボタン
     const testGasBtn = document.getElementById('testGasBtn');
@@ -405,11 +819,19 @@
     if (testGasBtn) {
       testGasBtn.addEventListener('click', async () => {
         const url = gasApiUrlInput ? gasApiUrlInput.value.trim() : '';
-        if (!url) { testGasResult.textContent = 'URLを入力してください'; testGasResult.style.color = 'var(--danger)'; return; }
+        if (!url) {
+          testGasResult.textContent = 'URLを入力してください';
+          testGasResult.style.color = 'var(--danger)';
+          return;
+        }
         testGasResult.textContent = '接続テスト中...';
         testGasResult.style.color = 'var(--text-muted)';
         try {
-          const res = await postToGas(url, { action: 'ping' }); // [FIX-1] CORS対応の共通ラッパー経由
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'ping' })
+          });
           const data = await res.json();
           if (data && (data.success || data.status === 'ok')) {
             testGasResult.textContent = '✓ 接続成功 (GAS API稼働中)';
@@ -433,14 +855,22 @@
     if (sharePhoneBtn) {
       sharePhoneBtn.addEventListener('click', () => {
         const gasUrl = gasApiUrlInput ? gasApiUrlInput.value.trim() : (localStorage.getItem('gas_api_url') || '');
-        if (!gasUrl) { alert('先に「GAS Web App URL」を入力・保存してください。'); return; }
+        if (!gasUrl) {
+          alert('先に「GAS Web App URL」を入力・保存してください。');
+          return;
+        }
         const currentUrl = window.location.origin + window.location.pathname;
         const shareUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'gas=' + encodeURIComponent(gasUrl);
         shareUrlInput.value = shareUrl;
+        
+        // QRコード画像の動的生成 (QR Server API)
         const qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(shareUrl);
         qrCodeContainer.innerHTML = `<img src="${qrImgUrl}" alt="QR Code" style="border:1px solid #CCC; border-radius:4px; max-width:180px;">`;
         sharePhoneArea.style.display = 'block';
-        navigator.clipboard.writeText(shareUrl).then(() => {}).catch(() => {});
+
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          console.log('Share URL copied to clipboard.');
+        }).catch(() => {});
       });
     }
 
@@ -459,20 +889,38 @@
       });
     }
 
-    // ============================================================
-    // Recording Control
-    // ============================================================
+    // --- Recording Control ---
     recordBtn.addEventListener('click', toggleRecording);
+
     async function toggleRecording() {
-      if (!isRecording) await startRecording();
-      else stopRecording();
+      if (!isRecording) {
+        // [修正] iOS Safari対策: ユーザージェスチャーの同期イベント内でAudioContextを事前生成・再開する
+        try {
+          if (!liveAudioContext) liveAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+          if (liveAudioContext.state === 'suspended') liveAudioContext.resume();
+          
+          if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioContext.state === 'suspended') audioContext.resume();
+        } catch (e) {
+          console.warn('AudioContext pre-init check failed:', e);
+        }
+
+        await startRecording();
+      } else {
+        stopRecording();
+      }
     }
+
     async function startRecording() {
       try {
         const engine = engineSelect.value;
-        if (engine === 'GEMINI_LIVE') await startGeminiLiveStreaming();
-        else if (engine === 'WEB_SPEECH') startWebSpeech();
-        else await startAudioStream();
+        if (engine === 'GEMINI_LIVE') {
+          await startGeminiLiveStreaming();
+        } else if (engine === 'WEB_SPEECH') {
+          startWebSpeech();
+        } else {
+          await startAudioStream();
+        }
         isRecording = true;
         recordBtn.classList.add('active');
         recordBtn.innerHTML = '<span>⏹️ 録音停止</span>';
@@ -492,6 +940,7 @@
         alert('マイクの初期化に失敗しました:\n' + msg);
       }
     }
+
     function stopRecording() {
       isRecording = false;
       speechDetected = false;
@@ -499,8 +948,970 @@
       recordBtn.innerHTML = '<span>🎤 録音開始</span>';
       statusDot.className = 'status-dot';
       statusText.textContent = '待機中';
+
       stopGeminiLiveStreaming();
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-      if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
-      if (audioContext && audioContext.state !== 'closed') audioContext.close();
-      if (webSpe
+
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop());
+      }
+      if (audioContext && audioContext.state !== 'closed') {
+        try { audioContext.close(); } catch(e) {}
+      }
+      if (webSpeechRecognition) {
+        webSpeechRecognition.stop();
+      }
+      clearTimeout(silenceTimer);
+      clearTimeout(maxChunkTimer);
+      hideLivePreview();
+    }
+
+    // --- Web Audio & VAD Audio Stream ---
+    async function startAudioStream() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('お使いのブラウザまたは実行環境ではマイクアクセスがサポートされていません（HTTPS接続が必要です）。');
+      }
+
+      // ハードウェア制約によるOverconstrainedErrorを防ぐため段階的にフォールバック
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true
+          } 
+        });
+      } catch (constraintErr) {
+        console.warn('オーディオ拡張制約でのマイク取得に失敗したため、基本設定(audio: true)で再試行します:', constraintErr);
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
+      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      const source = audioContext.createMediaStreamSource(mediaStream);
+      analyserNode = audioContext.createAnalyser();
+      analyserNode.fftSize = 512;
+      source.connect(analyserNode);
+
+      speechDetected = false;
+      initMediaRecorder();
+      monitorAudioLevel();
+    }
+
+    function initMediaRecorder() {
+      audioChunks = [];
+      
+      // [修正] iOS Safari / 各種ブラウザ向けのMIME Typeフォールバックを強化
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/mp4'; // iOS Safari向け
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = ''; // ブラウザのデフォルトにフォールバック
+          }
+        }
+      }
+
+      mediaRecorder = new MediaRecorder(mediaStream, mimeType ? { mimeType: mimeType } : undefined);
+      
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        clearTimeout(maxChunkTimer);
+        clearTimeout(silenceTimer);
+        
+        const hadSpeech = speechDetected;
+        speechDetected = false;
+
+        if (audioChunks.length > 0 && hadSpeech) {
+          const actualMime = mediaRecorder.mimeType || 'audio/webm';
+          const audioBlob = new Blob(audioChunks, { type: actualMime });
+          audioChunks = [];
+          handleAudioChunk(audioBlob);
+        } else {
+          audioChunks = [];
+        }
+
+        // 次の発話待機ループ
+        if (isRecording) {
+          try {
+            mediaRecorder.start();
+            scheduleMaxChunkTimer();
+          } catch (e) {
+            console.warn('Recorder restart failed:', e);
+          }
+        }
+      };
+
+      mediaRecorder.start();
+      scheduleMaxChunkTimer();
+    }
+
+    function scheduleMaxChunkTimer() {
+      clearTimeout(maxChunkTimer);
+      maxChunkTimer = setTimeout(() => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, MAX_CHUNK_DURATION_MS);
+    }
+
+    function monitorAudioLevel() {
+      const buffer = new Float32Array(analyserNode.fftSize);
+
+      function check() {
+        if (!isRecording) return;
+        analyserNode.getFloatTimeDomainData(buffer);
+        let sum = 0;
+        for (let i = 0; i < buffer.length; i++) {
+          sum += buffer[i] * buffer[i];
+        }
+        const rms = Math.sqrt(sum / buffer.length);
+        const db = 20 * Math.log10(Math.max(rms, 1e-5));
+
+        // VAD判定: 発話開始検知と無音終了検知
+        if (db >= SILENCE_THRESHOLD) {
+          // 有音検知
+          speechDetected = true;
+          clearTimeout(silenceTimer);
+          silenceTimer = null;
+        } else {
+          // 無音状態
+          if (speechDetected && !silenceTimer) {
+            silenceTimer = setTimeout(() => {
+              if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+              }
+            }, SILENCE_DURATION_MS);
+          }
+        }
+
+        requestAnimationFrame(check);
+      }
+      requestAnimationFrame(check);
+    }
+
+    
+    // --- Gemini 3.5 Transcribe Live (WebSocket 双方向リアルタイムストリーミング) ---
+    function showLivePreview(text) {
+      if (!livePreviewContainer || !livePreviewText) return;
+      emptyState.style.display = 'none';
+      livePreviewContainer.style.display = 'flex';
+      livePreviewText.textContent = text;
+    }
+
+    function hideLivePreview() {
+      if (!livePreviewContainer) return;
+      livePreviewContainer.style.display = 'none';
+      if (livePreviewText) livePreviewText.textContent = '';
+    }
+
+    function downsampleBuffer(buffer, sampleRate, outSampleRate) {
+      if (outSampleRate === sampleRate) return buffer;
+      if (outSampleRate > sampleRate) throw new Error("Downsampling rate must be smaller");
+      const sampleRateRatio = sampleRate / outSampleRate;
+      const newLength = Math.round(buffer.length / sampleRateRatio);
+      const result = new Float32Array(newLength);
+      let offsetResult = 0;
+      let offsetBuffer = 0;
+      while (offsetResult < result.length) {
+        const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+        let accum = 0, count = 0;
+        for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+          accum += buffer[i];
+          count++;
+        }
+        result[offsetResult] = count > 0 ? accum / count : buffer[offsetBuffer];
+        offsetResult++;
+        offsetBuffer = nextOffsetBuffer;
+      }
+      return result;
+    }
+
+    function floatTo16BitPCM(floatArray) {
+      const buffer = new ArrayBuffer(floatArray.length * 2);
+      const view = new DataView(buffer);
+      for (let i = 0; i < floatArray.length; i++) {
+        let s = Math.max(-1, Math.min(1, floatArray[i]));
+        view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+      return buffer;
+    }
+
+    function arrayBufferToBase64(buffer) {
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      const len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+
+    async function startGeminiLiveStreaming(isRotating = false) {
+      isLiveReady = false;
+      if (!isRotating) {
+        statusText.textContent = 'Live接続確立中...';
+      }
+      const category = categorySelect.value;
+      
+      // 1. 認証トークンの取得 (GAS Ephemeral Token または 直接入力APIキー)
+      const directKey = (directApiKeyInput ? directApiKeyInput.value.trim() : '') || localStorage.getItem('gemini_api_key');
+      let authToken = directKey;
+
+      if (!authToken) {
+        try {
+          const tokenRes = await new Promise((resolve, reject) => {
+            callApi('getLiveToken', { category: category }, resolve, reject);
+          });
+          if (tokenRes && tokenRes.success && tokenRes.token) {
+            authToken = tokenRes.token;
+            if (tokenRes.customVocabulary && Array.isArray(tokenRes.customVocabulary)) {
+              activeCustomVocabulary = tokenRes.customVocabulary;
+            }
+          } else {
+            throw new Error(tokenRes.error || '一時トークンの取得に失敗しました');
+          }
+        } catch (tokenErr) {
+          console.warn('Ephemeral token fetch failed:', tokenErr);
+          throw new Error('Gemini Live API の認証情報が取得できませんでした。⚙️設定から Gemini API キーを入力するか、GAS Web App URL を確認してください。');
+        }
+      }
+
+      // 2. WebSocket 接続の確立
+      const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(authToken)}`;
+      liveWebSocket = new WebSocket(wsUrl);
+
+      // 3. マイク音声ストリームと AudioContext (④ ネイティブ 16kHz 優先リサンプリング)
+      if (!liveMediaStream) {
+        liveMediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true
+          }
+        });
+      }
+
+      if (!liveAudioContext || liveAudioContext.state === 'closed') {
+        try {
+          // ブラウザネイティブの高品質 16kHz リサンプラーを優先利用
+          liveAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+        } catch (e) {
+          // 非対応環境ではデフォルトサンプリングレートで生成
+          liveAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+
+      if (liveAudioContext.state === 'suspended') {
+        await liveAudioContext.resume();
+      }
+
+      // [修正] リーク対策: 既存の Processor があれば破棄して新しく作る
+      if (liveProcessor) {
+        try { liveProcessor.disconnect(); } catch (e) {}
+      }
+
+      const inputSampleRate = liveAudioContext.sampleRate;
+      const source = liveAudioContext.createMediaStreamSource(liveMediaStream);
+      liveProcessor = liveAudioContext.createScriptProcessor(4096, 1, 1);
+
+      // ① 音声チャンク送出 (isLiveReady で setup 完了まで厳密にガード)
+      liveProcessor.onaudioprocess = (e) => {
+        if (!isRecording || !isLiveReady || !liveWebSocket || liveWebSocket.readyState !== WebSocket.OPEN) return;
+        const inputData = e.inputBuffer.getChannelData(0);
+        
+        // サンプリングレートが 16kHz でない場合のみ手動ダウンサンプリング
+        let pcmData = inputData;
+        if (inputSampleRate !== 16000) {
+          pcmData = downsampleBuffer(inputData, inputSampleRate, 16000);
+        }
+        const pcmBuffer = floatTo16BitPCM(pcmData);
+        const base64Pcm = arrayBufferToBase64(pcmBuffer);
+
+        // WebSocket へリアルタイム音声チャンク送信 (audio/pcm;rate=16000)
+        try {
+          liveWebSocket.send(JSON.stringify({
+            realtimeInput: {
+              audio: {
+                data: base64Pcm,
+                mimeType: 'audio/pcm;rate=16000'
+              }
+            }
+          }));
+        } catch (sendErr) {
+          console.warn('Realtime chunk send error:', sendErr);
+        }
+      };
+
+      source.connect(liveProcessor);
+      liveProcessor.connect(liveAudioContext.destination);
+
+      // 4. WebSocket イベントハンドラ
+      await new Promise((resolve, reject) => {
+        liveWebSocket.onopen = () => {
+          console.log('Gemini Live WebSocket connected.');
+          statusText.textContent = '🔴 LIVE リアルタイム認識中';
+
+          // ⑥ セットアップメッセージ送信 (スプレッドシート辞書を直接注入)
+          const setupMessage = {
+            setup: {
+              model: 'models/gemini-3.5-transcribe-live',
+              generationConfig: {
+                responseModalities: ['TEXT']
+              },
+              inputAudioTranscription: {
+                mode: 'SMART'
+              }
+            }
+          };
+          // customVocabulary が存在する場合のみセット (空配列の省略対応)
+          if (activeCustomVocabulary && activeCustomVocabulary.length > 0) {
+             setupMessage.setup.inputAudioTranscription.customVocabulary = activeCustomVocabulary;
+          }
+
+          liveWebSocket.send(JSON.stringify(setupMessage));
+          
+          // ① setup メッセージ送出完了後に音声送信を許可
+          isLiveReady = true;
+
+          // ② 10分セッション制限対策: 9分30秒でセッションを安全に自動ローテーション
+          clearTimeout(sessionRotationTimer);
+          sessionRotationTimer = setTimeout(() => {
+            if (isRecording) {
+              console.log('Gemini Live 10分制限対策: セッションを安全に自動ローテーションします...');
+              rotateLiveSession();
+            }
+          }, 9.5 * 60 * 1000);
+
+          resolve();
+        };
+
+        liveWebSocket.onerror = (err) => {
+          console.error('Gemini Live WebSocket Error:', err);
+          isLiveReady = false;
+          reject(new Error('WebSocket接続エラーが発生しました。ネットワークまたはAPIキーを確認してください。'));
+        };
+
+        liveWebSocket.onclose = (e) => {
+          console.log('Gemini Live WebSocket closed (code: ' + e.code + ', reason: ' + e.reason + ')');
+          isLiveReady = false;
+          
+          // ② 録音中の予期せぬ切断時は自動再接続
+          if (isRecording && !isRotating) {
+            console.warn('録音中に WebSocket が切断されたため、自動再接続を試行します...');
+            clearTimeout(sessionRotationTimer);
+            sessionRotationTimer = setTimeout(() => {
+              if (isRecording) {
+                rotateLiveSession();
+              }
+            }, 1000);
+          }
+        };
+
+        liveWebSocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            const serverContent = data.serverContent;
+            if (!serverContent) return;
+
+            // (A) リアルタイム暫定テキスト (Interim)
+            if (serverContent.interimInputTranscription && serverContent.interimInputTranscription.text) {
+              const interim = serverContent.interimInputTranscription.text;
+              showLivePreview(interim);
+            }
+
+            // (B) 確定テキスト (Turn completion)
+            if (serverContent.inputTranscription && serverContent.inputTranscription.text) {
+              const finalText = serverContent.inputTranscription.text.trim();
+              if (finalText) {
+                hideLivePreview();
+                commitFinalLiveTranscript(finalText);
+              }
+            }
+          } catch (msgErr) {
+            console.warn('Failed to parse WebSocket message:', msgErr);
+          }
+        };
+      });
+    }
+
+    // ② 自動セッションローテーション (録音を止めずに透過的に新規接続)
+    async function rotateLiveSession() {
+      if (!isRecording) return;
+      console.log('セッションローテーションを実行中...');
+      
+      // 古い WebSocket を静かに終了
+      isLiveReady = false;
+      if (liveWebSocket && liveWebSocket.readyState === WebSocket.OPEN) {
+        try {
+          liveWebSocket.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
+          liveWebSocket.close();
+        } catch (e) {}
+      }
+
+      // 新しい WebSocket を即座に接続 (内部で古い Processor 等は上書き・クリーンアップされる)
+      try {
+        await startGeminiLiveStreaming(true);
+        console.log('セッションローテーションが正常に完了しました。');
+      } catch (err) {
+        console.error('セッションローテーションに失敗しました:', err);
+        // 万が一失敗した場合は1.5秒後に再試行
+        setTimeout(() => { if (isRecording) rotateLiveSession(); }, 1500);
+      }
+    }
+
+    function stopGeminiLiveStreaming() {
+      isLiveReady = false;
+      clearTimeout(sessionRotationTimer);
+
+      if (liveProcessor) {
+        try { liveProcessor.disconnect(); } catch (e) {}
+        liveProcessor = null;
+      }
+      if (liveMediaStream) {
+        liveMediaStream.getTracks().forEach(t => t.stop());
+        liveMediaStream = null;
+      }
+      if (liveAudioContext && liveAudioContext.state !== 'closed') {
+        try { liveAudioContext.close(); } catch (e) {}
+        liveAudioContext = null;
+      }
+      if (liveWebSocket) {
+        if (liveWebSocket.readyState === WebSocket.OPEN) {
+          try {
+            liveWebSocket.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
+            liveWebSocket.close();
+          } catch (e) {}
+        }
+        liveWebSocket = null;
+      }
+    }
+
+    function commitFinalLiveTranscript(finalText) {
+      const cardId = 'card_' + Date.now();
+      const timeStr = new Date().toLocaleTimeString('ja-JP', { hour12: false });
+      const currentDir = directionSelect ? directionSelect.value : 'AUTO';
+      const defaultSpeaker = (currentDir === 'JA_TO_EN') ? 'Auditor (監査員)' : '話者 (自動判定中)';
+
+      const newItem = {
+        id: cardId,
+        time: timeStr,
+        speaker: defaultSpeaker,
+        originalText: finalText,
+        translatedText: '',
+        engine: 'Gemini 3.5 Live',
+        direction: currentDir,
+        autoSpeaker: true,
+        isTranslating: true
+      };
+
+      addTranscriptItem(newItem);
+      // Pass 2: 文脈翻訳を実行
+      processPass2(cardId, finalText, categorySelect.value, currentDir);
+    }
+
+    // --- Audio Chunk Dispatch (Pass 1 & Pass 2) ---
+    async function handleAudioChunk(blob) {
+      if (blob.size < 3000) return; // 微小ノイズは無視
+
+      const engine = engineSelect.value;
+      const category = categorySelect.value;
+      const timeStr = new Date().toLocaleTimeString('ja-JP', { hour12: false });
+      const cardId = 'card_' + Date.now();
+
+      if (engine === 'LOCAL_WHISPER') {
+        processLocalWhisper(blob, cardId, timeStr, category);
+        return;
+      }
+
+      // MIMEタイプのサニタイズ（codecs等のパラメータを除去して送信）
+      const cleanMimeType = blob.type.split(';')[0];
+
+      // Convert Blob to Base64
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64Audio = reader.result.split(',')[1];
+        statusText.textContent = '認識中 (Pass 1)...';
+
+        // Call Backend: Pass 1
+        callApi(
+          'processAudioPass1',
+          { audioBase64: base64Audio, mimeType: cleanMimeType, category: category },
+          (res) => {
+            statusText.textContent = isRecording ? '録音中 (REC)' : '待機中';
+            if (!res.hasSpeech || !res.originalText) return;
+
+            // 新規発話アイテムの追加・表示
+            const currentDir = directionSelect ? directionSelect.value : 'AUTO';
+            const defaultSpeaker = (currentDir === 'JA_TO_EN') ? 'Auditor (監査員)' : '話者 (自動判定中)';
+            const newItem = {
+              id: cardId,
+              time: timeStr,
+              speaker: defaultSpeaker,
+              originalText: res.originalText,
+              translatedText: '',
+              engine: 'Gemini 3.5',
+              direction: currentDir,
+              autoSpeaker: true,
+              isTranslating: true
+            };
+            addTranscriptItem(newItem);
+
+            // Trigger Pass 2: Translation
+            processPass2(cardId, res.originalText, category, currentDir);
+          },
+          (err) => {
+            console.error('Pass 1 Error:', err);
+            statusText.textContent = '認識エラー';
+            alert('音声認識エラー: ' + err.message);
+          }
+        );
+      };
+    }
+
+    function processPass2(cardId, originalText, category, direction) {
+      const dir = direction || (directionSelect ? directionSelect.value : 'AUTO');
+      callApi(
+        'processTranslationPass2',
+        { originalText: originalText, category: category, direction: dir },
+        (res) => {
+          updateCardTranslation(cardId, res.translatedText, res.direction, res.detectedLanguage);
+        },
+        (err) => {
+          console.error('Pass 2 Error:', err);
+          updateCardTranslation(cardId, '【翻訳エラー / 🔄再試行可能】');
+        }
+      );
+    }
+
+    // --- Web Speech API (L1 Fallback) ---
+    function startWebSpeech() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('お使いのブラウザは Web Speech API に対応していません。');
+        return;
+      }
+      webSpeechRecognition = new SpeechRecognition();
+      webSpeechRecognition.continuous = true;
+      webSpeechRecognition.interimResults = false;
+      webSpeechRecognition.lang = (directionSelect && directionSelect.value === 'JA_TO_EN') ? 'ja-JP' : 'en-US';
+
+      webSpeechRecognition.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript.trim();
+        if (!transcript) return;
+        
+        const cardId = 'card_' + Date.now();
+        const timeStr = new Date().toLocaleTimeString('ja-JP', { hour12: false });
+        
+        const newItem = {
+          id: cardId,
+          time: timeStr,
+          speaker: 'Yard Rep (ヤード担当者)',
+          originalText: transcript,
+          translatedText: '',
+          engine: 'Web Speech (L1)',
+          isTranslating: true
+        };
+        addTranscriptItem(newItem);
+
+        // Translate via Pass 2
+        processPass2(cardId, transcript, categorySelect.value);
+      };
+
+      webSpeechRecognition.onerror = (e) => {
+        console.warn('Web Speech API Error:', e.error);
+      };
+
+      webSpeechRecognition.start();
+    }
+
+    // --- Local AI faster-whisper (L2 Fallback) ---
+    async function processLocalWhisper(blob, cardId, timeStr, category) {
+      const endpoint = localStorage.getItem('local_whisper_url') || localEndpointInput.value;
+      if (!endpoint) {
+        alert('ローカルAIのエンドポイントURLが設定されていません。⚙️ 設定から入力してください。');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('audio_file', blob, 'recording.webm');
+
+      try {
+        statusText.textContent = 'ローカル認識中...';
+        const res = await fetch(endpoint, { method: 'POST', body: formData });
+        const data = await res.json();
+        const originalText = data.text || '';
+        statusText.textContent = isRecording ? '録音中 (REC)' : '待機中';
+
+        if (originalText.trim()) {
+          const currentDir = directionSelect ? directionSelect.value : 'EN_TO_JA';
+          const defaultSpeaker = (currentDir === 'JA_TO_EN') ? 'Auditor (監査員)' : 'Yard Rep (ヤード担当者)';
+          const newItem = {
+            id: cardId,
+            time: timeStr,
+            speaker: defaultSpeaker,
+            originalText: originalText,
+            translatedText: '',
+            engine: 'Whisper (L2)',
+            direction: currentDir,
+            isTranslating: true
+          };
+          addTranscriptItem(newItem);
+          processPass2(cardId, originalText, category, currentDir);
+        }
+      } catch (err) {
+        console.error('Local Whisper Request Failed:', err);
+        statusText.textContent = 'Local AI 接続失敗';
+      }
+    }
+
+    // --- UI Card Rendering & Storage Management ---
+
+    // 新規発話アイテムの追加（ストア登録＋永続化＋DOM描画）
+    function addTranscriptItem(item) {
+      transcriptStore.push(item);
+      persistTranscripts();
+      renderCardToDOM(item);
+    }
+
+    // DOMへのカード生成・描画のみを担当（キャッシュ読み込み時も利用）
+    function renderCardToDOM(item) {
+      emptyState.style.display = 'none';
+      saveBtn.disabled = false;
+
+      const card = document.createElement('div');
+      card.className = 'transcript-card';
+      card.id = item.id;
+
+      const speakerClass = (item.speaker && item.speaker.includes('Auditor')) ? 'auditor' : 
+                           ((item.speaker && item.speaker.includes('Yard')) ? 'yard' : '');
+
+      card.innerHTML = `
+        <div class="card-meta">
+          <div class="meta-left">
+            <span>🕒 ${item.time}</span>
+            <span class="speaker-tag ${speakerClass}" id="${item.id}_spk" onclick="toggleSpeaker('${item.id}')" title="クリックして話者を切替">${escapeHtml(item.speaker || 'Auditor')}</span>
+            <span class="engine-tag">${item.engine}</span>
+          </div>
+          <div class="card-actions">
+            <button class="card-action-btn edit-btn" onclick="toggleEditCard('${item.id}')" title="テキストを編集">✏️ 編集</button>
+            <button class="card-action-btn retry-btn" onclick="retryTranslation('${item.id}')" title="現在の分野辞書で再翻訳">🔄 再翻訳</button>
+            <button class="card-action-btn delete-btn" onclick="deleteCard('${item.id}')" title="この発話を削除">🗑️</button>
+          </div>
+        </div>
+        <div class="card-body" id="${item.id}_view">
+          <div class="text-column">
+            <span class="column-label" id="${item.id}_orig_label">${(item.direction === 'JA_TO_EN') ? '原文 (日本語)' : '原文 (英語・現地語)'}</span>
+            <div class="original-text" id="${item.id}_orig">${escapeHtml(item.originalText)}</div>
+          </div>
+          <div class="text-column">
+            <span class="column-label" id="${item.id}_trans_label">${(item.direction === 'JA_TO_EN') ? '英語訳 (English)' : '日本語訳 (Japanese)'}</span>
+            <div class="translated-text" id="${item.id}_trans">
+              ${item.isTranslating ? '<span class="translating-spinner">⏳ 辞書参照・翻訳中...</span>' : escapeHtml(item.translatedText)}
+            </div>
+          </div>
+        </div>
+        <div class="edit-container" id="${item.id}_edit">
+          <div class="edit-grid">
+            <div>
+              <span class="column-label">原文を編集</span>
+              <textarea class="edit-textarea" id="${item.id}_edit_orig">${escapeHtml(item.originalText)}</textarea>
+            </div>
+            <div>
+              <span class="column-label">日本語訳を編集</span>
+              <textarea class="edit-textarea" id="${item.id}_edit_trans">${escapeHtml(item.translatedText || '')}</textarea>
+            </div>
+          </div>
+          <div class="edit-btn-row">
+            <button class="btn btn-clear" style="font-size:0.75rem; padding:4px 8px;" onclick="cancelEditCard('${item.id}')">キャンセル</button>
+            <button class="btn btn-record" style="font-size:0.75rem; padding:4px 10px;" onclick="saveEditCard('${item.id}')">💾 保存</button>
+          </div>
+        </div>
+      `;
+
+      logContainer.appendChild(card);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function updateCardTranslation(cardId, translatedText, direction, detectedLanguage) {
+      const transEl = document.getElementById(`${cardId}_trans`);
+      if (transEl) {
+        transEl.textContent = translatedText;
+      }
+      const item = transcriptStore.find(t => t.id === cardId);
+      if (item) {
+        item.translatedText = translatedText;
+        item.isTranslating = false;
+        if (direction) item.direction = direction;
+        if (detectedLanguage) item.detectedLanguage = detectedLanguage;
+
+        // 言語判定に基づく列ラベルの動的更新
+        const origLabelEl = document.getElementById(`${cardId}_orig_label`);
+        const transLabelEl = document.getElementById(`${cardId}_trans_label`);
+        const isJaToEn = (item.direction === 'JA_TO_EN');
+
+        if (origLabelEl) {
+          origLabelEl.textContent = isJaToEn ? '原文 (日本語)' : '原文 (英語・現地語)';
+        }
+        if (transLabelEl) {
+          transLabelEl.textContent = isJaToEn ? '英語訳 (English)' : '日本語訳 (Japanese)';
+        }
+
+        // 話者が未設定または初期状態の場合、言語から自動設定
+        const spkEl = document.getElementById(`${cardId}_spk`);
+        if (item.autoSpeaker && spkEl) {
+          item.speaker = isJaToEn ? 'Auditor (監査員)' : 'Yard Rep (ヤード担当者)';
+          spkEl.textContent = item.speaker;
+          spkEl.className = 'speaker-tag ' + (isJaToEn ? 'auditor' : 'yard');
+        }
+
+        persistTranscripts();
+        const editTransEl = document.getElementById(`${cardId}_edit_trans`);
+        if (editTransEl) editTransEl.value = translatedText;
+      }
+    }
+
+    // --- Card In-line Actions (PC & Backlog Integration) ---
+
+    // 話者の切替
+    window.toggleSpeaker = function(cardId) {
+      const item = transcriptStore.find(t => t.id === cardId);
+      if (!item) return;
+
+      item.autoSpeaker = false;
+      const currentIndex = SPEAKER_ROLES.indexOf(item.speaker || SPEAKER_ROLES[0]);
+      const nextIndex = (currentIndex + 1) % SPEAKER_ROLES.length;
+      item.speaker = SPEAKER_ROLES[nextIndex];
+      persistTranscripts();
+
+      const spkEl = document.getElementById(`${cardId}_spk`);
+      if (spkEl) {
+        spkEl.textContent = item.speaker;
+        spkEl.className = 'speaker-tag ' + 
+          (item.speaker.includes('Auditor') ? 'auditor' : (item.speaker.includes('Yard') ? 'yard' : ''));
+      }
+    };
+
+    // 編集モード切替
+    window.toggleEditCard = function(cardId) {
+      const viewEl = document.getElementById(`${cardId}_view`);
+      const editEl = document.getElementById(`${cardId}_edit`);
+      if (viewEl && editEl) {
+        viewEl.style.display = 'none';
+        editEl.classList.add('active');
+      }
+    };
+
+    window.cancelEditCard = function(cardId) {
+      const viewEl = document.getElementById(`${cardId}_view`);
+      const editEl = document.getElementById(`${cardId}_edit`);
+      if (viewEl && editEl) {
+        editEl.classList.remove('active');
+        viewEl.style.display = 'grid';
+      }
+    };
+
+    window.saveEditCard = function(cardId) {
+      const item = transcriptStore.find(t => t.id === cardId);
+      if (!item) return;
+
+      const editOrigEl = document.getElementById(`${cardId}_edit_orig`);
+      const editTransEl = document.getElementById(`${cardId}_edit_trans`);
+      
+      if (editOrigEl && editTransEl) {
+        item.originalText = editOrigEl.value.trim();
+        item.translatedText = editTransEl.value.trim();
+        persistTranscripts();
+
+        const origEl = document.getElementById(`${cardId}_orig`);
+        const transEl = document.getElementById(`${cardId}_trans`);
+        if (origEl) origEl.textContent = item.originalText;
+        if (transEl) transEl.textContent = item.translatedText;
+      }
+
+      window.cancelEditCard(cardId);
+    };
+
+    // 手動再翻訳
+    window.retryTranslation = function(cardId) {
+      const item = transcriptStore.find(t => t.id === cardId);
+      if (!item || !item.originalText) return;
+
+      item.isTranslating = true;
+      const transEl = document.getElementById(`${cardId}_trans`);
+      if (transEl) {
+        transEl.innerHTML = '<span class="translating-spinner">⏳ 辞書参照・再翻訳中...</span>';
+      }
+      const currentDir = directionSelect ? directionSelect.value : (item.direction || 'EN_TO_JA');
+      item.direction = currentDir;
+      persistTranscripts();
+      processPass2(cardId, item.originalText, categorySelect.value, currentDir);
+    };
+
+    // 発話カード削除
+    window.deleteCard = function(cardId) {
+      if (!confirm('この発話記録を削除しますか？')) return;
+      transcriptStore = transcriptStore.filter(t => t.id !== cardId);
+      persistTranscripts();
+
+      const cardEl = document.getElementById(cardId);
+      if (cardEl) cardEl.remove();
+
+      if (transcriptStore.length === 0) {
+        emptyState.style.display = 'block';
+        saveBtn.disabled = true;
+      }
+    };
+
+    function persistTranscripts() {
+      localStorage.setItem('transcript_cache', JSON.stringify(transcriptStore));
+    }
+
+    // キャッシュからの復元（重複バグ解消版）
+    function loadTranscriptsFromCache() {
+      const cached = localStorage.getItem('transcript_cache');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            transcriptStore = parsed;
+            emptyState.style.display = 'none';
+            saveBtn.disabled = false;
+            transcriptStore.forEach(t => renderCardToDOM(t));
+          }
+        } catch (e) {
+          console.warn('Failed to load cache:', e);
+        }
+      }
+    }
+
+    clearBtn.addEventListener('click', () => {
+      if (transcriptStore.length === 0) return;
+      if (confirm('現在の発話ログをすべて消去しますか？')) {
+        transcriptStore = [];
+        localStorage.removeItem('transcript_cache');
+        logContainer.innerHTML = '';
+        logContainer.appendChild(emptyState);
+        emptyState.style.display = 'block';
+        saveBtn.disabled = true;
+      }
+    });
+
+    // --- Markdown Export (Backlog / Clipboard) ---
+    copyMdBtn.addEventListener('click', () => {
+      if (transcriptStore.length === 0) {
+        alert('コピーする発話ログがありません。');
+        return;
+      }
+      let md = `# 現地監査 議事録 (${categorySelect.value})\n`;
+      md += `作成日時: ${new Date().toLocaleString('ja-JP')} | 総発話数: ${transcriptStore.length}\n\n`;
+      md += '| 時刻 | 話者 | 原文 (Original) | 日本語訳 (Japanese) |\n';
+      md += '| :--- | :--- | :--- | :--- |\n';
+      transcriptStore.forEach(t => {
+        const time = t.time || '';
+        const spk = t.speaker || '発話';
+        const orig = (t.originalText || '').replace(/\n/g, '<br>').replace(/\|/g, '\\|');
+        const trans = (t.translatedText || '').replace(/\n/g, '<br>').replace(/\|/g, '\\|');
+        md += `| ${time} | ${spk} | ${orig} | ${trans} |\n`;
+      });
+
+      navigator.clipboard.writeText(md).then(() => {
+        alert('議事録をMarkdown形式でクリップボードにコピーしました！\nBacklogや議事録メモにそのまま貼り付け可能です。');
+      }).catch(err => {
+        alert('クリップボードへのコピーに失敗しました: ' + err);
+      });
+    });
+
+    // --- Google Document Save ---
+    saveBtn.addEventListener('click', () => {
+      if (transcriptStore.length === 0) return;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<span>⏳ ドキュメント作成中...</span>';
+
+      callApi(
+        'saveToGoogleDoc',
+        { transcriptList: transcriptStore, category: categorySelect.value, direction: directionSelect.value },
+        (res) => {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<span>💾 Google ドキュメントに保存</span>';
+          if (confirm(`議事録ドキュメントを保存しました！\nフォルダ: ${res.folderName}\nファイル: ${res.docName}\n\n今すぐGoogleドキュメントを開きますか？`)) {
+            window.open(res.docUrl, '_blank');
+          }
+        },
+        (err) => {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<span>💾 Google ドキュメントに保存</span>';
+          alert('ドキュメントの保存に失敗しました: ' + err.message);
+        }
+      );
+    });
+
+    // --- Settings Modal Events ---
+    settingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
+    closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
+
+    saveSettingsBtn.addEventListener('click', () => {
+      localStorage.setItem('local_whisper_url', localEndpointInput.value.trim());
+      if (gasApiUrlInput) {
+        localStorage.setItem('gas_api_url', gasApiUrlInput.value.trim());
+      }
+      if (directApiKeyInput) {
+        localStorage.setItem('gemini_api_key', directApiKeyInput.value.trim());
+      }
+      if (modalDirectionSelect) {
+        const val = modalDirectionSelect.value;
+        if (directionSelect) directionSelect.value = val;
+        localStorage.setItem('trans_direction', val);
+      }
+      settingsModal.classList.remove('open');
+      alert('設定を保存しました。');
+    });
+
+    testLocalBtn.addEventListener('click', async () => {
+      const url = localEndpointInput.value.trim();
+      if (!url) {
+        testResult.textContent = 'URLを入力してください';
+        testResult.style.color = 'var(--danger)';
+        return;
+      }
+      testResult.textContent = '接続中...';
+      try {
+        const res = await fetch(url.replace('/transcribe', '/health').replace('/transcribe', '/'), { method: 'GET' });
+        testResult.textContent = '✓ 接続成功';
+        testResult.style.color = 'var(--success)';
+      } catch (err) {
+        testResult.textContent = '✗ 接続失敗 (CORS/オフライン確認)';
+        testResult.style.color = 'var(--danger)';
+      }
+    });
+
+    refreshCacheBtn.addEventListener('click', () => {
+      cacheResult.textContent = 'キャッシュ更新中...';
+      callApi(
+        'refreshGlossaryCache',
+        {},
+        (res) => {
+          cacheResult.textContent = '✓ ' + res.message;
+        },
+        (err) => {
+          cacheResult.textContent = 'エラー: ' + err.message;
+          cacheResult.style.color = 'var(--danger)';
+        }
+      );
+    });
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
