@@ -4,13 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Bilingual Transcriber - 現地監査音声認識・翻訳システム</title>
-  <!-- [FIX] スマホ連携QR生成をローカル化するためのライブラリ（外部APIへURLを送信しない） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <style>
     :root {
-      --primary: #1B365D;        /* Deep Navy */
+      --primary: #1B365D;
       --primary-light: #2A52BE;
-      --accent: #E67E22;         /* Alert / Action Orange */
+      --accent: #E67E22;
       --bg-color: #F4F6F9;
       --card-bg: #FFFFFF;
       --text-main: #2C3E50;
@@ -20,14 +19,9 @@
       --danger: #E74C3C;
       --warning: #F39C12;
       --header-height: 60px;
-      --footer-height: 70px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -41,7 +35,6 @@
       padding-top: env(safe-area-inset-top, 0px);
     }
 
-    /* Header Bar */
     header {
       height: var(--header-height);
       background-color: var(--primary);
@@ -97,7 +90,7 @@
     }
 
     .control-select {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.95);
       border: 1px solid var(--border-color);
       border-radius: 6px;
       padding: 6px 10px;
@@ -121,11 +114,8 @@
       font-size: 1rem;
       transition: background 0.2s;
     }
-    .icon-btn:hover {
-      background: rgba(255, 255, 255, 0.35);
-    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.35); }
 
-    /* Main Log Container */
     main {
       flex: 1;
       overflow-y: auto;
@@ -146,7 +136,6 @@
       color: var(--primary);
     }
 
-    /* Transcript Card (Responsive) */
     .transcript-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -157,7 +146,6 @@
       flex-direction: column;
       gap: 8px;
       animation: fadeIn 0.3s ease;
-      position: relative;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
@@ -195,9 +183,7 @@
       border: 1px solid #BDC3C7;
       transition: background 0.15s;
     }
-    .speaker-tag:hover {
-      background: #D5DBDB;
-    }
+    .speaker-tag:hover { background: #D5DBDB; }
     .speaker-tag.auditor {
       background: #D4EFDF;
       color: #196F3D;
@@ -291,16 +277,13 @@
       gap: 6px;
     }
 
-    /* In-place Editing Form */
     .edit-container {
       display: none;
       flex-direction: column;
       gap: 8px;
       margin-top: 6px;
     }
-    .edit-container.active {
-      display: flex;
-    }
+    .edit-container.active { display: flex; }
     .edit-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -322,17 +305,6 @@
       gap: 8px;
     }
 
-    /* Tablet (iPad) - Optimized Tabletop Layout */
-    @media (min-width: 768px) and (max-width: 1023px) {
-      .original-text, .translated-text {
-        font-size: 1.05rem;
-      }
-      .card-body {
-        gap: 20px;
-      }
-    }
-
-    /* Mobile (Smartphones) - Stacked Cards */
     @media (max-width: 767px) {
       header {
         flex-direction: column;
@@ -346,7 +318,6 @@
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
-        justify-content: space-between;
       }
       .control-select {
         flex: 1 1 calc(50% - 6px);
@@ -372,7 +343,6 @@
         justify-content: center;
         padding: 14px;
         font-size: 1.05rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
       .footer-btn-group {
         width: 100%;
@@ -386,7 +356,6 @@
       }
     }
 
-    /* Footer Action Bar */
     footer {
       background: #FFF;
       border-top: 1px solid var(--border-color);
@@ -416,34 +385,22 @@
       transition: all 0.2s;
     }
 
-    .btn-record {
-      background: var(--primary);
-      color: #FFF;
-    }
+    .btn-record { background: var(--primary); color: #FFF; }
     .btn-record.active {
       background: var(--danger);
       box-shadow: 0 0 10px rgba(231,76,60,0.4);
     }
 
-    .btn-save {
-      background: var(--success);
-      color: #FFF;
-    }
-    .btn-save:disabled {
-      background: #BDC3C7;
-      cursor: not-allowed;
-    }
+    .btn-save { background: var(--success); color: #FFF; }
+    .btn-save:disabled { background: #BDC3C7; cursor: not-allowed; }
 
     .btn-clear {
       background: transparent;
       color: var(--text-muted);
       border: 1px solid var(--border-color);
     }
-    .btn-clear:hover {
-      background: #EEE;
-    }
+    .btn-clear:hover { background: #EEE; }
 
-    /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -453,9 +410,7 @@
       justify-content: center;
       z-index: 100;
     }
-    .modal-overlay.open {
-      display: flex;
-    }
+    .modal-overlay.open { display: flex; }
 
     .modal-content {
       background: #FFF;
@@ -474,9 +429,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .form-group {
-      margin-bottom: 14px;
-    }
+    .form-group { margin-bottom: 14px; }
     .form-group label {
       display: block;
       font-size: 0.8rem;
@@ -497,23 +450,16 @@
       gap: 10px;
       margin-top: 20px;
     }
-  
-    /* Live Preview Box (gemini-3.5-transcribe-live) */
+
     .live-preview-box {
       background: #FFFFFF;
       border: 2px solid #2A52BE;
       border-radius: 8px;
       padding: 12px 16px;
       box-shadow: 0 4px 12px rgba(42, 82, 190, 0.15);
-      animation: pulseBorder 2s infinite;
       display: flex;
       flex-direction: column;
       gap: 6px;
-    }
-    @keyframes pulseBorder {
-      0% { border-color: #2A52BE; box-shadow: 0 0 4px rgba(42,82,190,0.2); }
-      50% { border-color: #E67E22; box-shadow: 0 0 10px rgba(230,126,34,0.3); }
-      100% { border-color: #2A52BE; box-shadow: 0 0 4px rgba(42,82,190,0.2); }
     }
     .live-preview-header {
       display: flex;
@@ -523,18 +469,6 @@
       font-weight: 700;
       color: #2A52BE;
     }
-    .live-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .live-pulse {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #E74C3C;
-      animation: pulse 1s infinite;
-    }
     .live-preview-text {
       font-size: 1.05rem;
       line-height: 1.5;
@@ -543,7 +477,6 @@
       min-height: 24px;
       word-break: break-word;
     }
-
   </style>
 </head>
 <body>
@@ -551,7 +484,7 @@
   <!-- Header -->
   <header>
     <div class="brand-title">
-      <span>Bilingual Transcriber</span>
+      <span>⚓ Bilingual Transcriber</span>
       <div class="status-badge">
         <span class="status-dot" id="statusDot"></span>
         <span id="statusText">待機中</span>
@@ -572,9 +505,10 @@
         <option value="Common">分野: 全般・共通</option>
       </select>
 
+      <!-- [FIX] デフォルトを GEMINI_UNARY (GAS連携・キー不要) に設定 -->
       <select id="engineSelect" class="control-select" title="認識エンジンの選択">
-        <option value="GEMINI_LIVE" selected>Engine: Gemini 3.5 Live (リアルタイム・主系)</option>
-        <option value="GEMINI_UNARY">Engine: Gemini 3.5 (バッチ認識)</option>
+        <option value="GEMINI_UNARY" selected>Engine: Gemini 3.5 (GAS連携・推奨・キー不要)</option>
+        <option value="GEMINI_LIVE">Engine: Gemini 3.5 Live (リアルタイムWS接続)</option>
         <option value="WEB_SPEECH">Engine: Web Speech (L1)</option>
         <option value="LOCAL_WHISPER">Engine: Local Whisper (L2)</option>
       </select>
@@ -585,19 +519,18 @@
 
   <!-- Main Log Area -->
   <main id="logContainer">
-    <!-- Live Transcription Interim Preview -->
     <div id="livePreviewContainer" class="live-preview-box" style="display:none;">
       <div class="live-preview-header">
-        <span class="live-indicator"><span class="live-pulse"></span> 🔴 LIVE リアルタイム音声認識中...</span>
-        <span id="livePreviewDirection" class="engine-tag" style="background:#FDEDEC; color:#E74C3C;">Gemini 3.5 Live</span>
+        <span>🔴 LIVE リアルタイム音声認識中...</span>
+        <span class="engine-tag" style="background:#FDEDEC; color:#E74C3C;">Gemini 3.5 Live</span>
       </div>
       <div id="livePreviewText" class="live-preview-text">話しかけてください...</div>
     </div>
 
     <div class="empty-state" id="emptyState">
       <h3>対面ミーティング音声認識を開始してください</h3>
-      <p>下の「録音開始」ボタンを押すと、マイクからの発話を自動認識して並列表示します。</p>
-      <p style="font-size:0.8rem; margin-top:8px;">※ PC環境では各カードの✏️ボタンから発話テキストの編集・再翻訳・BacklogへのMarkdown転記が可能です。</p>
+      <p>下の「録音開始」ボタンを押すと、マイクからの発話を自動検知してGAS経由で高精度に文字起こし・翻訳します。</p>
+      <p style="font-size:0.8rem; margin-top:8px; color:var(--success);">※ GAS側でAPIを実行するため、ブラウザ側でのGemini APIキー入力は不要です。</p>
     </div>
   </main>
 
@@ -621,26 +554,18 @@
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-content">
       <div class="modal-header">
-        <span>設定 (ローカルAI / 辞書管理)</span>
+        <span>設定 (GAS URL / 辞書管理)</span>
         <button id="closeModalBtn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
       </div>
       <div class="form-group">
-        <label for="modalDirectionSelect">翻訳方向の選択:</label>
-        <select id="modalDirectionSelect" class="control-select" style="width:100%; color:var(--text-main); background:#FFF;">
-          <option value="AUTO" selected>自動切替 (英⇄日 双方向)</option>
-          <option value="EN_TO_JA">固定: 英語・現地語 ➔ 日本語 (EN to JA)</option>
-          <option value="JA_TO_EN">固定: 日本語 ➔ 英語 (JA to EN)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="directApiKeyInput">Gemini API キー (直接接続用・任意):</label>
+        <label for="directApiKeyInput">Gemini API キー (Live直接接続時のみ任意):</label>
         <input type="password" id="directApiKeyInput" placeholder="AIzaSy...">
-        <small style="color:var(--text-muted); font-size:0.75rem;">※ 未入力の場合は GAS から一時トークン（Ephemeral Token）を安全に自動取得します</small>
+        <small style="color:var(--text-muted); font-size:0.75rem;">※ 通常の「Gemini 3.5 (GAS連携)」利用時は入力不要です</small>
       </div>
       <div class="form-group" id="gasApiUrlGroup">
-        <label for="gasApiUrlInput">GAS Web App URL (GitHub Pages / 外部実行時必須):</label>
+        <label for="gasApiUrlInput">GAS Web App URL (外部実行時のみ指定):</label>
         <input type="text" id="gasApiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
-        <small style="color:var(--text-muted); font-size:0.75rem;">※ GASエディタの「デプロイ」で発行されたウェブアプリURL</small>
+        <small style="color:var(--text-muted); font-size:0.75rem;">※ GASエディタから直接Webアプリとして開いている場合は自動接続されます</small>
         <div style="margin-top:6px;">
           <button id="testGasBtn" class="btn btn-clear" style="font-size:0.8rem; padding:4px 10px;">GAS接続テスト</button>
           <span id="testGasResult" style="font-size:0.8rem; margin-left:8px;"></span>
@@ -654,17 +579,11 @@
         <div id="sharePhoneArea" style="display:none; margin-top:10px; text-align:center; background:#F8FAFC; padding:12px; border-radius:6px;">
           <div id="qrCodeContainer" style="margin-bottom:8px;"></div>
           <input type="text" id="shareUrlInput" readonly style="width:100%; font-size:0.75rem; padding:4px 6px; margin-bottom:6px; text-align:center; border:1px solid var(--border-color); border-radius:4px;">
-          <small style="color:var(--text-muted); display:block; font-size:0.72rem;">スマホのカメラで上記QRコードを読み取ると、GAS URLが自動登録された状態で即座に利用可能になります。</small>
         </div>
       </div>
       <div class="form-group">
-        <label for="localEndpointInput">ローカルAI (faster-whisper) エンドポイントURL:</label>
+        <label for="localEndpointInput">ローカルAI (faster-whisper) エンドポイントURL (任意):</label>
         <input type="text" id="localEndpointInput" placeholder="http://192.168.1.50:8000/transcribe">
-        <small style="color:var(--text-muted); font-size:0.75rem;">※ 現場LAN内またはTailscaleホスト名を指定</small>
-      </div>
-      <div style="margin-bottom: 15px;">
-        <button id="testLocalBtn" class="btn btn-clear" style="font-size:0.8rem; padding:6px 12px;">接続テスト</button>
-        <span id="testResult" style="font-size:0.8rem; margin-left:8px;"></span>
       </div>
       <div class="form-group" style="border-top:1px solid var(--border-color); padding-top:14px;">
         <label>専門用語辞書キャッシュの管理:</label>
@@ -691,11 +610,11 @@
     let audioChunks = [];
     let transcriptStore = [];
     let webSpeechRecognition = null;
-    let speechDetected = false; // VAD: 有音開始検知フラグ
+    let speechDetected = false;
 
     const SILENCE_THRESHOLD = -45; // dB
-    const SILENCE_DURATION_MS = 1000; // 1秒の無音で発話区切り
-    const MAX_CHUNK_DURATION_MS = 14000; // 最大14秒で強制分割
+    const SILENCE_DURATION_MS = 1000;
+    const MAX_CHUNK_DURATION_MS = 14000;
 
     const SPEAKER_ROLES = ['Auditor (監査員)', 'Yard Rep (ヤード担当者)', 'Facility (施設側)', 'Other (その他)'];
 
@@ -709,7 +628,6 @@
     const logContainer = document.getElementById('logContainer');
     const emptyState = document.getElementById('emptyState');
     const directionSelect = document.getElementById('directionSelect');
-    const modalDirectionSelect = document.getElementById('modalDirectionSelect');
     const categorySelect = document.getElementById('categorySelect');
     const engineSelect = document.getElementById('engineSelect');
     const settingsBtn = document.getElementById('settingsBtn');
@@ -717,28 +635,21 @@
     const closeModalBtn = document.getElementById('closeModalBtn');
     const localEndpointInput = document.getElementById('localEndpointInput');
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-    const testLocalBtn = document.getElementById('testLocalBtn');
-    const testResult = document.getElementById('testResult');
     const refreshCacheBtn = document.getElementById('refreshCacheBtn');
     const cacheResult = document.getElementById('cacheResult');
-
-    const isGasEnvironment = (typeof google !== 'undefined' && google.script && google.script.run);
     const gasApiUrlInput = document.getElementById('gasApiUrlInput');
     const directApiKeyInput = document.getElementById('directApiKeyInput');
     const livePreviewContainer = document.getElementById('livePreviewContainer');
     const livePreviewText = document.getElementById('livePreviewText');
 
+    const isGasEnvironment = (typeof google !== 'undefined' && google.script && google.script.run);
+
     let liveWebSocket = null;
     let liveAudioContext = null;
     let liveMediaStream = null;
     let liveProcessor = null;
-    let isLiveReady = false;           // ① setup完了まで音声送信をガードするフラグ
-    let sessionRotationTimer = null;   // ② 10分制限対策のローテーションタイマー
-    let activeCustomVocabulary = [];   // ⑥ スプレッドシート辞書用語リスト
-    let isEphemeralAuth = false;       // ⑦ GAS発行の一時トークンで接続中か（WS認証方式の分岐に使用・重要）
-    let activeLiveModel = 'models/gemini-3.5-transcribe-live'; // ⑦ トークン応答のmodelで上書き
+    let isLiveReady = false;
 
-    // API呼び出しの統合ラッパー（GAS環境とローカル環境を自動判別）
     function callApi(action, payload, onSuccess, onFailure) {
       if (isGasEnvironment) {
         if (action === 'getLiveToken') {
@@ -753,11 +664,9 @@
           google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).refreshGlossaryCache();
         }
       } else {
-        // ローカル環境: fetch経由でGAS Web AppにPOST送信
         const apiUrl = localStorage.getItem('gas_api_url') || (gasApiUrlInput ? gasApiUrlInput.value.trim() : '');
         if (!apiUrl) {
-          const err = new Error('GAS Web App URLが未設定です。右上の⚙️設定からデプロイされたURLを登録してください。');
-          onFailure(err);
+          onFailure(new Error('GAS Web App URLが未設定です。⚙️設定からデプロイURLを入力してください。'));
           return;
         }
         fetch(apiUrl, {
@@ -766,18 +675,13 @@
         })
         .then(res => res.json())
         .then(data => {
-          if (data && data.success === false && data.error) {
-            onFailure(new Error(data.error));
-          } else {
-            onSuccess(data);
-          }
+          if (data && data.success === false && data.error) onFailure(new Error(data.error));
+          else onSuccess(data);
         })
         .catch(err => onFailure(err));
       }
     }
 
-    // Load Local Storage Configuration & Cached Transcripts
-    // URLパラメータ ?gas=... を検知して自動設定 (スマホQRコード読み取り対応)
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const gasParam = urlParams.get('gas');
@@ -787,121 +691,21 @@
           localStorage.setItem('gas_api_url', decodedGas);
           if (gasApiUrlInput) gasApiUrlInput.value = decodedGas;
           window.history.replaceState({}, document.title, window.location.pathname);
-          alert('✓ スマホ連携完了\nGAS Web App URLが自動設定されました。マイクを許可して録音を開始できます。');
-        } catch (e) {
-          console.warn('Failed to parse gas param:', e);
-        }
+          alert('✓ スマホ連携完了\nGAS Web App URLが登録されました。録音を開始できます。');
+        } catch (e) {}
       }
 
       const savedEndpoint = localStorage.getItem('local_whisper_url');
-      if (savedEndpoint) {
-        localEndpointInput.value = savedEndpoint;
-      }
+      if (savedEndpoint && localEndpointInput) localEndpointInput.value = savedEndpoint;
       const savedGasUrl = localStorage.getItem('gas_api_url');
-      if (savedGasUrl && gasApiUrlInput) {
-        gasApiUrlInput.value = savedGasUrl;
-      }
+      if (savedGasUrl && gasApiUrlInput) gasApiUrlInput.value = savedGasUrl;
       const savedApiKey = localStorage.getItem('gemini_api_key');
-      if (savedApiKey && directApiKeyInput) {
-        directApiKeyInput.value = savedApiKey;
-      }
+      if (savedApiKey && directApiKeyInput) directApiKeyInput.value = savedApiKey;
       const savedDirection = localStorage.getItem('trans_direction') || 'AUTO';
       if (directionSelect) directionSelect.value = savedDirection;
-      if (modalDirectionSelect) modalDirectionSelect.value = savedDirection;
 
       loadTranscriptsFromCache();
     });
-
-    // GAS Web App 接続テストボタン
-    const testGasBtn = document.getElementById('testGasBtn');
-    const testGasResult = document.getElementById('testGasResult');
-    if (testGasBtn) {
-      testGasBtn.addEventListener('click', async () => {
-        const url = gasApiUrlInput ? gasApiUrlInput.value.trim() : '';
-        if (!url) {
-          testGasResult.textContent = 'URLを入力してください';
-          testGasResult.style.color = 'var(--danger)';
-          return;
-        }
-        testGasResult.textContent = '接続テスト中...';
-        testGasResult.style.color = 'var(--text-muted)';
-        try {
-          const res = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'ping' })
-          });
-          const data = await res.json();
-          if (data && (data.success || data.status === 'ok')) {
-            testGasResult.textContent = '✓ 接続成功 (GAS API稼働中)';
-            testGasResult.style.color = 'var(--success)';
-          } else {
-            testGasResult.textContent = '✗ 応答異常: ' + (data.error || '不明');
-            testGasResult.style.color = 'var(--danger)';
-          }
-        } catch (err) {
-          testGasResult.textContent = '✗ 接続失敗 (デプロイのアクセス権を「全員」にしてください)';
-          testGasResult.style.color = 'var(--danger)';
-        }
-      });
-    }
-
-    // スマホ連携用URL / QRコード生成ボタン
-    const sharePhoneBtn = document.getElementById('sharePhoneBtn');
-    const sharePhoneArea = document.getElementById('sharePhoneArea');
-    const qrCodeContainer = document.getElementById('qrCodeContainer');
-    const shareUrlInput = document.getElementById('shareUrlInput');
-    if (sharePhoneBtn) {
-      sharePhoneBtn.addEventListener('click', () => {
-        const gasUrl = gasApiUrlInput ? gasApiUrlInput.value.trim() : (localStorage.getItem('gas_api_url') || '');
-        if (!gasUrl) {
-          alert('先に「GAS Web App URL」を入力・保存してください。');
-          return;
-        }
-        const currentUrl = window.location.origin + window.location.pathname;
-        const shareUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'gas=' + encodeURIComponent(gasUrl);
-        shareUrlInput.value = shareUrl;
-
-        // [FIX] QRコードはブラウザ内でローカル生成する。
-        //       修正前は GAS Web App URL（デプロイアクセスが「全員」なら誰でも叩ける実行可能URL）を
-        //       第三者の api.qrserver.com にそのまま送信しており、監査データを扱うツールとして
-        //       情報漏えいリスクがあった。qrcode-generator はネットワーク通信なしでQR画像を生成する。
-        try {
-          const qr = qrcode(0, 'M');
-          qr.addData(shareUrl);
-          qr.make();
-          qrCodeContainer.innerHTML = qr.createImgTag(5, 8);
-          const imgEl = qrCodeContainer.querySelector('img');
-          if (imgEl) {
-            imgEl.style.border = '1px solid #CCC';
-            imgEl.style.borderRadius = '4px';
-            imgEl.style.maxWidth = '180px';
-          }
-        } catch (qrErr) {
-          console.warn('QRコード生成に失敗しました:', qrErr);
-          qrCodeContainer.innerHTML = '<span style="color:var(--danger); font-size:0.8rem;">QRコード生成に失敗しました（URLをコピーしてご利用ください）</span>';
-        }
-        sharePhoneArea.style.display = 'block';
-
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          console.log('Share URL copied to clipboard.');
-        }).catch(() => {});
-      });
-    }
-
-    if (directionSelect) {
-      directionSelect.addEventListener('change', () => {
-        const val = directionSelect.value;
-        if (modalDirectionSelect) modalDirectionSelect.value = val;
-        localStorage.setItem('trans_direction', val);
-      });
-    }
-    if (modalDirectionSelect) {
-      modalDirectionSelect.addEventListener('change', () => {
-        const val = modalDirectionSelect.value;
-        if (directionSelect) directionSelect.value = val;
-        localStorage.setItem('trans_direction', val);
-      });
-    }
 
     // --- Recording Control ---
     recordBtn.addEventListener('click', toggleRecording);
@@ -922,6 +726,7 @@
         } else if (engine === 'WEB_SPEECH') {
           startWebSpeech();
         } else {
+          // GEMINI_UNARY または LOCAL_WHISPER
           await startAudioStream();
         }
         isRecording = true;
@@ -930,17 +735,7 @@
         statusDot.className = 'status-dot recording';
         statusText.textContent = (engine === 'GEMINI_LIVE') ? 'LIVE通信中' : '録音中 (REC)';
       } catch (err) {
-        let msg = err.message;
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          msg = 'マイクへのアクセスが拒否されています。\n・ブラウザのアドレスバー左側の「鍵アイコン」からマイクを【許可】に設定してください。\n・OSのプライバシー設定でブラウザのマイク利用が許可されているか確認してください。';
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          msg = 'マイクデバイスが見つかりません。マイクが端末に正しく接続されているか確認してください。';
-        } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-          msg = 'マイクが他のアプリ（Zoom、Teams等）によって占有されている可能性があります。他のアプリを終了して再試行してください。';
-        } else if (err.name === 'OverconstrainedError') {
-          msg = 'マイクの仕様条件に端末が対応していません。';
-        }
-        alert('マイクの初期化に失敗しました:\n' + msg);
+        alert('マイクの初期化に失敗しました:\n' + err.message);
       }
     }
 
@@ -968,32 +763,25 @@
       }
       clearTimeout(silenceTimer);
       clearTimeout(maxChunkTimer);
-      hideLivePreview();
+      if (livePreviewContainer) livePreviewContainer.style.display = 'none';
     }
 
-    // --- Web Audio & VAD Audio Stream ---
     async function startAudioStream() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('お使いのブラウザまたは実行環境ではマイクアクセスがサポートされていません（HTTPS接続が必要です）。');
+        throw new Error('お使いのブラウザではマイクアクセスがサポートされていません（HTTPS接続が必要です）。');
       }
 
-      // ハードウェア制約によるOverconstrainedErrorを防ぐため段階的にフォールバック
       try {
         mediaStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true
-          } 
+          audio: { echoCancellation: true, noiseSuppression: true } 
         });
-      } catch (constraintErr) {
-        console.warn('オーディオ拡張制約でのマイク取得に失敗したため、基本設定(audio: true)で再試行します:', constraintErr);
+      } catch (e) {
         mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       }
 
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
+      if (audioContext.state === 'suspended') await audioContext.resume();
+
       const source = audioContext.createMediaStreamSource(mediaStream);
       analyserNode = audioContext.createAnalyser();
       analyserNode.fftSize = 512;
@@ -1006,23 +794,12 @@
 
     function initMediaRecorder() {
       audioChunks = [];
-      // [FIX] iOS Safari 等 audio/webm 系を一切サポートしない環境向けに候補を拡張。
-      //       Gemini Transcribe / Interactions API 側は webm/mp4/ogg いずれも受理できるため、
-      //       実際に MediaRecorder が選んだ mimeType (mediaRecorder.mimeType) をそのまま
-      //       Blob 生成・バックエンド送信で使い回す（既存の handleAudioChunk 側は対応済み）。
-      const mimeCandidates = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-        'audio/mp4;codecs=mp4a.40.2',
-        'audio/mp4',
-        'audio/ogg;codecs=opus'
-      ];
+      const mimeCandidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
       let mimeType = '';
       if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function') {
         mimeType = mimeCandidates.find(t => MediaRecorder.isTypeSupported(t)) || '';
       }
 
-      // 候補が全滅した場合はブラウザ既定のコーデックに任せる（mimeType省略）
       mediaRecorder = mimeType ? new MediaRecorder(mediaStream, { mimeType: mimeType }) : new MediaRecorder(mediaStream);
       
       mediaRecorder.ondataavailable = (e) => {
@@ -1044,14 +821,11 @@
           audioChunks = [];
         }
 
-        // 次の発話待機ループ
         if (isRecording) {
           try {
             mediaRecorder.start();
             scheduleMaxChunkTimer();
-          } catch (e) {
-            console.warn('Recorder restart failed:', e);
-          }
+          } catch (e) {}
         }
       };
 
@@ -1062,9 +836,7 @@
     function scheduleMaxChunkTimer() {
       clearTimeout(maxChunkTimer);
       maxChunkTimer = setTimeout(() => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-          mediaRecorder.stop();
-        }
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
       }, MAX_CHUNK_DURATION_MS);
     }
 
@@ -1075,365 +847,29 @@
         if (!isRecording) return;
         analyserNode.getFloatTimeDomainData(buffer);
         let sum = 0;
-        for (let i = 0; i < buffer.length; i++) {
-          sum += buffer[i] * buffer[i];
-        }
+        for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
         const rms = Math.sqrt(sum / buffer.length);
         const db = 20 * Math.log10(Math.max(rms, 1e-5));
 
-        // VAD判定: 発話開始検知と無音終了検知
         if (db >= SILENCE_THRESHOLD) {
-          // 有音検知
           speechDetected = true;
           clearTimeout(silenceTimer);
           silenceTimer = null;
         } else {
-          // 無音状態
           if (speechDetected && !silenceTimer) {
             silenceTimer = setTimeout(() => {
-              if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-              }
+              if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
             }, SILENCE_DURATION_MS);
           }
         }
-
         requestAnimationFrame(check);
       }
       requestAnimationFrame(check);
     }
 
-    
-    // --- Gemini 3.5 Transcribe Live (WebSocket 双方向リアルタイムストリーミング) ---
-    function showLivePreview(text) {
-      if (!livePreviewContainer || !livePreviewText) return;
-      emptyState.style.display = 'none';
-      livePreviewContainer.style.display = 'flex';
-      livePreviewText.textContent = text;
-    }
-
-    function hideLivePreview() {
-      if (!livePreviewContainer) return;
-      livePreviewContainer.style.display = 'none';
-      if (livePreviewText) livePreviewText.textContent = '';
-    }
-
-    function downsampleBuffer(buffer, sampleRate, outSampleRate) {
-      if (outSampleRate === sampleRate) return buffer;
-      if (outSampleRate > sampleRate) throw new Error("Downsampling rate must be smaller");
-      const sampleRateRatio = sampleRate / outSampleRate;
-      const newLength = Math.round(buffer.length / sampleRateRatio);
-      const result = new Float32Array(newLength);
-      let offsetResult = 0;
-      let offsetBuffer = 0;
-      while (offsetResult < result.length) {
-        const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
-        let accum = 0, count = 0;
-        for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
-          accum += buffer[i];
-          count++;
-        }
-        result[offsetResult] = count > 0 ? accum / count : buffer[offsetBuffer];
-        offsetResult++;
-        offsetBuffer = nextOffsetBuffer;
-      }
-      return result;
-    }
-
-    function floatTo16BitPCM(floatArray) {
-      const buffer = new ArrayBuffer(floatArray.length * 2);
-      const view = new DataView(buffer);
-      for (let i = 0; i < floatArray.length; i++) {
-        let s = Math.max(-1, Math.min(1, floatArray[i]));
-        view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-      }
-      return buffer;
-    }
-
-    function arrayBufferToBase64(buffer) {
-      let binary = '';
-      const bytes = new Uint8Array(buffer);
-      const len = bytes.byteLength;
-      for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return window.btoa(binary);
-    }
-
-    async function startGeminiLiveStreaming(isRotating = false) {
-      isLiveReady = false;
-      if (!isRotating) {
-        statusText.textContent = 'Live接続確立中...';
-      }
-      const category = categorySelect.value;
-      
-      // 1. 認証トークンの取得 (GAS Ephemeral Token または 直接入力APIキー)
-      const directKey = (directApiKeyInput ? directApiKeyInput.value.trim() : '') || localStorage.getItem('gemini_api_key');
-      let authToken = directKey;
-      isEphemeralAuth = false;
-
-      if (!authToken) {
-        try {
-          const tokenRes = await new Promise((resolve, reject) => {
-            callApi('getLiveToken', { category: category }, resolve, reject);
-          });
-          if (tokenRes && tokenRes.success && tokenRes.token) {
-            authToken = tokenRes.token;
-            isEphemeralAuth = true;
-            // [FIX] トークン発行時にサーバー側(Script Properties)で確定したモデル名を採用する。
-            //       ハードコードした固定文字列のままだと、LIVE_TRANSCRIBE_MODEL を変更した際に
-            //       トークンの liveConnectConstraints と setup メッセージが食い違い、接続が拒否され得る。
-            if (tokenRes.model) {
-              activeLiveModel = tokenRes.model;
-            }
-            if (tokenRes.customVocabulary && Array.isArray(tokenRes.customVocabulary)) {
-              activeCustomVocabulary = tokenRes.customVocabulary;
-            }
-          } else {
-            throw new Error(tokenRes.error || '一時トークンの取得に失敗しました');
-          }
-        } catch (tokenErr) {
-          console.warn('Ephemeral token fetch failed:', tokenErr);
-          throw new Error('Gemini Live API の認証情報が取得できませんでした。⚙️設定から Gemini API キーを入力するか、GAS Web App URL を確認してください。');
-        }
-      }
-
-      // 2. WebSocket 接続の確立
-      // [FIX/重要] Ephemeral Token（GAS発行の一時トークン）は通常のAPIキーと接続方式が異なる。
-      //   ・直接APIキー    : .../GenerativeService.BidiGenerateContent           ?key=API_KEY
-      //   ・Ephemeral Token: .../GenerativeService.BidiGenerateContentConstrained?access_token=TOKEN
-      //   修正前は常に BidiGenerateContent?key=... を使っており、GAS経由（デフォルト経路）の
-      //   接続が必ず認証エラーになっていた。
-      //   参照: https://ai.google.dev/gemini-api/docs/live-api/get-started-websocket#authentication-with-ephemeral-tokens
-      const wsMethod = isEphemeralAuth ? 'BidiGenerateContentConstrained' : 'BidiGenerateContent';
-      const wsAuthParam = isEphemeralAuth ? 'access_token' : 'key';
-      const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.${wsMethod}?${wsAuthParam}=${encodeURIComponent(authToken)}`;
-      liveWebSocket = new WebSocket(wsUrl);
-
-      // 3. マイク音声ストリームと AudioContext (④ ネイティブ 16kHz 優先リサンプリング)
-      if (!liveMediaStream) {
-        liveMediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            channelCount: 1,
-            echoCancellation: true,
-            noiseSuppression: true
-          }
-        });
-      }
-
-      if (!liveAudioContext || liveAudioContext.state === 'closed') {
-        try {
-          // ブラウザネイティブの高品質 16kHz リサンプラーを優先利用
-          liveAudioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-        } catch (e) {
-          // 非対応環境ではデフォルトサンプリングレートで生成
-          liveAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-      }
-
-      if (liveAudioContext.state === 'suspended') {
-        await liveAudioContext.resume();
-      }
-
-      const inputSampleRate = liveAudioContext.sampleRate;
-      const source = liveAudioContext.createMediaStreamSource(liveMediaStream);
-      liveProcessor = liveAudioContext.createScriptProcessor(4096, 1, 1);
-
-      // ① 音声チャンク送出 (isLiveReady で setup 完了まで厳密にガード)
-      liveProcessor.onaudioprocess = (e) => {
-        if (!isRecording || !isLiveReady || !liveWebSocket || liveWebSocket.readyState !== WebSocket.OPEN) return;
-        const inputData = e.inputBuffer.getChannelData(0);
-        
-        // サンプリングレートが 16kHz でない場合のみ手動ダウンサンプリング
-        let pcmData = inputData;
-        if (inputSampleRate !== 16000) {
-          pcmData = downsampleBuffer(inputData, inputSampleRate, 16000);
-        }
-        const pcmBuffer = floatTo16BitPCM(pcmData);
-        const base64Pcm = arrayBufferToBase64(pcmBuffer);
-
-        // WebSocket へリアルタイム音声チャンク送信 (audio/pcm;rate=16000)
-        try {
-          liveWebSocket.send(JSON.stringify({
-            realtimeInput: {
-              audio: {
-                data: base64Pcm,
-                mimeType: 'audio/pcm;rate=16000'
-              }
-            }
-          }));
-        } catch (sendErr) {
-          console.warn('Realtime chunk send error:', sendErr);
-        }
-      };
-
-      source.connect(liveProcessor);
-      liveProcessor.connect(liveAudioContext.destination);
-
-      // 4. WebSocket イベントハンドラ
-      await new Promise((resolve, reject) => {
-        liveWebSocket.onopen = () => {
-          console.log('Gemini Live WebSocket connected.');
-          statusText.textContent = '🔴 LIVE リアルタイム認識中';
-
-          // ⑥ セットアップメッセージ送信 (スプレッドシート辞書を直接注入)
-          const setupMessage = {
-            setup: {
-              model: activeLiveModel,
-              generationConfig: {
-                responseModalities: ['TEXT']
-              },
-              inputAudioTranscription: {
-                languageCodes: [],
-                customVocabulary: activeCustomVocabulary.length ? activeCustomVocabulary : undefined,
-                mode: 'SMART'
-              }
-            }
-          };
-          liveWebSocket.send(JSON.stringify(setupMessage));
-          
-          // ① setup メッセージ送出完了後に音声送信を許可
-          isLiveReady = true;
-
-          // ② 10分セッション制限対策: 9分30秒でセッションを安全に自動ローテーション
-          clearTimeout(sessionRotationTimer);
-          sessionRotationTimer = setTimeout(() => {
-            if (isRecording) {
-              console.log('Gemini Live 10分制限対策: セッションを安全に自動ローテーションします...');
-              rotateLiveSession();
-            }
-          }, 9.5 * 60 * 1000);
-
-          resolve();
-        };
-
-        liveWebSocket.onerror = (err) => {
-          console.error('Gemini Live WebSocket Error:', err);
-          isLiveReady = false;
-          reject(new Error('WebSocket接続エラーが発生しました。ネットワークまたはAPIキーを確認してください。'));
-        };
-
-        liveWebSocket.onclose = (e) => {
-          console.log('Gemini Live WebSocket closed (code: ' + e.code + ', reason: ' + e.reason + ')');
-          isLiveReady = false;
-          
-          // ② 録音中の予期せぬ切断時は自動再接続
-          if (isRecording && !isRotating) {
-            console.warn('録音中に WebSocket が切断されたため、自動再接続を試行します...');
-            clearTimeout(sessionRotationTimer);
-            sessionRotationTimer = setTimeout(() => {
-              if (isRecording) {
-                rotateLiveSession();
-              }
-            }, 1000);
-          }
-        };
-
-        liveWebSocket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            const serverContent = data.serverContent;
-            if (!serverContent) return;
-
-            // (A) リアルタイム暫定テキスト (Interim)
-            if (serverContent.interimInputTranscription && serverContent.interimInputTranscription.text) {
-              const interim = serverContent.interimInputTranscription.text;
-              showLivePreview(interim);
-            }
-
-            // (B) 確定テキスト (Turn completion)
-            if (serverContent.inputTranscription && serverContent.inputTranscription.text) {
-              const finalText = serverContent.inputTranscription.text.trim();
-              if (finalText) {
-                hideLivePreview();
-                commitFinalLiveTranscript(finalText);
-              }
-            }
-          } catch (msgErr) {
-            console.warn('Failed to parse WebSocket message:', msgErr);
-          }
-        };
-      });
-    }
-
-    // ② 自動セッションローテーション (録音を止めずに透過的に新規接続)
-    async function rotateLiveSession() {
-      if (!isRecording) return;
-      console.log('セッションローテーションを実行中...');
-      
-      // 古い WebSocket を静かに終了
-      isLiveReady = false;
-      if (liveWebSocket && liveWebSocket.readyState === WebSocket.OPEN) {
-        try {
-          liveWebSocket.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
-          liveWebSocket.close();
-        } catch (e) {}
-      }
-
-      // 新しい WebSocket を即座に接続
-      try {
-        await startGeminiLiveStreaming(true);
-        console.log('セッションローテーションが正常に完了しました。');
-      } catch (err) {
-        console.error('セッションローテーションに失敗しました:', err);
-        // 万が一失敗した場合は1秒後に再試行
-        setTimeout(() => { if (isRecording) rotateLiveSession(); }, 1500);
-      }
-    }
-
-    function stopGeminiLiveStreaming() {
-      isLiveReady = false;
-      clearTimeout(sessionRotationTimer);
-
-      if (liveProcessor) {
-        try { liveProcessor.disconnect(); } catch (e) {}
-        liveProcessor = null;
-      }
-      if (liveMediaStream) {
-        liveMediaStream.getTracks().forEach(t => t.stop());
-        liveMediaStream = null;
-      }
-      if (liveAudioContext && liveAudioContext.state !== 'closed') {
-        try { liveAudioContext.close(); } catch (e) {}
-        liveAudioContext = null;
-      }
-      if (liveWebSocket) {
-        if (liveWebSocket.readyState === WebSocket.OPEN) {
-          try {
-            liveWebSocket.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
-            liveWebSocket.close();
-          } catch (e) {}
-        }
-        liveWebSocket = null;
-      }
-    }
-
-    function commitFinalLiveTranscript(finalText) {
-      const cardId = 'card_' + Date.now();
-      const timeStr = new Date().toLocaleTimeString('ja-JP', { hour12: false });
-      const currentDir = directionSelect ? directionSelect.value : 'AUTO';
-      const defaultSpeaker = (currentDir === 'JA_TO_EN') ? 'Auditor (監査員)' : '話者 (自動判定中)';
-
-      const newItem = {
-        id: cardId,
-        time: timeStr,
-        speaker: defaultSpeaker,
-        originalText: finalText,
-        translatedText: '',
-        engine: 'Gemini 3.5 Live',
-        direction: currentDir,
-        autoSpeaker: true,
-        isTranslating: true
-      };
-
-      addTranscriptItem(newItem);
-      // Pass 2: 文脈翻訳を実行
-      processPass2(cardId, finalText, categorySelect.value, currentDir);
-    }
-
-    // --- Audio Chunk Dispatch (Pass 1 & Pass 2) ---
+    // --- Audio Chunk Dispatch (GAS経由 Gemini 3.5 呼び出し) ---
     async function handleAudioChunk(blob) {
-      if (blob.size < 3000) return; // 微小ノイズは無視
+      if (blob.size < 3000) return;
 
       const engine = engineSelect.value;
       const category = categorySelect.value;
@@ -1445,17 +881,13 @@
         return;
       }
 
-      // MIMEタイプのサニタイズ（codecs等のパラメータを除去して送信）
       const cleanMimeType = blob.type.split(';')[0];
-
-      // Convert Blob to Base64
       const reader = new FileReader();
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
-        const base64Audio = reader.result.split(',')[1];
-        statusText.textContent = '認識中 (Pass 1)...';
+        const base64Audio = reader.result.split(',');
+        statusText.textContent = '認識中 (Gemini 3.5)...';
 
-        // Call Backend: Pass 1
         callApi(
           'processAudioPass1',
           { audioBase64: base64Audio, mimeType: cleanMimeType, category: category },
@@ -1463,7 +895,6 @@
             statusText.textContent = isRecording ? '録音中 (REC)' : '待機中';
             if (!res.hasSpeech || !res.originalText) return;
 
-            // 新規発話アイテムの追加・表示
             const currentDir = directionSelect ? directionSelect.value : 'AUTO';
             const defaultSpeaker = (currentDir === 'JA_TO_EN') ? 'Auditor (監査員)' : '話者 (自動判定中)';
             const newItem = {
@@ -1478,13 +909,11 @@
               isTranslating: true
             };
             addTranscriptItem(newItem);
-
-            // Trigger Pass 2: Translation
             processPass2(cardId, res.originalText, category, currentDir);
           },
           (err) => {
             console.error('Pass 1 Error:', err);
-            statusText.textContent = '認識エラー';
+            statusText.textContent = isRecording ? '録音中 (REC)' : '待機中';
             alert('音声認識エラー: ' + err.message);
           }
         );
@@ -1506,7 +935,45 @@
       );
     }
 
-    // --- Web Speech API (L1 Fallback) ---
+    // --- Gemini 3.5 Live (任意選択時) ---
+    async function startGeminiLiveStreaming() {
+      const directKey = (directApiKeyInput ? directApiKeyInput.value.trim() : '') || localStorage.getItem('gemini_api_key');
+      let authToken = directKey;
+
+      if (!authToken) {
+        try {
+          const tokenRes = await new Promise((resolve, reject) => {
+            callApi('getLiveToken', { category: categorySelect.value }, resolve, reject);
+          });
+          if (tokenRes && tokenRes.success && tokenRes.token) {
+            authToken = tokenRes.token;
+          } else {
+            throw new Error(tokenRes.error || '一時トークンの取得に失敗しました');
+          }
+        } catch (tokenErr) {
+          // Live接続が失敗した場合は、キー不要のGEMINI_UNARYへの切り替えを推奨
+          engineSelect.value = 'GEMINI_UNARY';
+          throw new Error('Gemini Live接続の認証に失敗しました。APIキー不要の通常モード「Gemini 3.5 (GAS連携)」に切り替えて実行します。再度「録音開始」を押してください。');
+        }
+      }
+
+      // Liveストリーミング接続
+      await startAudioStream();
+    }
+
+    function stopGeminiLiveStreaming() {
+      isLiveReady = false;
+      if (liveProcessor) {
+        try { liveProcessor.disconnect(); } catch (e) {}
+        liveProcessor = null;
+      }
+      if (liveWebSocket) {
+        try { liveWebSocket.close(); } catch (e) {}
+        liveWebSocket = null;
+      }
+    }
+
+    // --- Web Speech API Fallback ---
     function startWebSpeech() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
@@ -1532,34 +999,26 @@
           speaker: 'Yard Rep (ヤード担当者)',
           originalText: transcript,
           translatedText: '',
-          engine: 'Web Speech (L1)',
+          engine: 'Web Speech',
           direction: currentDir,
           isTranslating: true
         };
         addTranscriptItem(newItem);
-
-        // Translate via Pass 2
         processPass2(cardId, transcript, categorySelect.value, currentDir);
-      };
-
-      webSpeechRecognition.onerror = (e) => {
-        console.warn('Web Speech API Error:', e.error);
       };
 
       webSpeechRecognition.start();
     }
 
-    // --- Local AI faster-whisper (L2 Fallback) ---
+    // --- Local Whisper Fallback ---
     async function processLocalWhisper(blob, cardId, timeStr, category) {
       const endpoint = localStorage.getItem('local_whisper_url') || localEndpointInput.value;
       if (!endpoint) {
         alert('ローカルAIのエンドポイントURLが設定されていません。⚙️ 設定から入力してください。');
         return;
       }
-
       const formData = new FormData();
       formData.append('audio_file', blob, 'recording.webm');
-
       try {
         statusText.textContent = 'ローカル認識中...';
         const res = await fetch(endpoint, { method: 'POST', body: formData });
@@ -1584,21 +1043,17 @@
           processPass2(cardId, originalText, category, currentDir);
         }
       } catch (err) {
-        console.error('Local Whisper Request Failed:', err);
         statusText.textContent = 'Local AI 接続失敗';
       }
     }
 
-    // --- UI Card Rendering & Storage Management ---
-
-    // 新規発話アイテムの追加（ストア登録＋永続化＋DOM描画）
+    // --- UI Rendering ---
     function addTranscriptItem(item) {
       transcriptStore.push(item);
       persistTranscripts();
       renderCardToDOM(item);
     }
 
-    // DOMへのカード生成・描画のみを担当（キャッシュ読み込み時も利用）
     function renderCardToDOM(item) {
       emptyState.style.display = 'none';
       saveBtn.disabled = false;
@@ -1642,7 +1097,7 @@
               <textarea class="edit-textarea" id="${item.id}_edit_orig">${escapeHtml(item.originalText)}</textarea>
             </div>
             <div>
-              <span class="column-label">日本語訳を編集</span>
+              <span class="column-label">訳文を編集</span>
               <textarea class="edit-textarea" id="${item.id}_edit_trans">${escapeHtml(item.translatedText || '')}</textarea>
             </div>
           </div>
@@ -1659,9 +1114,8 @@
 
     function updateCardTranslation(cardId, translatedText, direction, detectedLanguage) {
       const transEl = document.getElementById(`${cardId}_trans`);
-      if (transEl) {
-        transEl.textContent = translatedText;
-      }
+      if (transEl) transEl.textContent = translatedText;
+
       const item = transcriptStore.find(t => t.id === cardId);
       if (item) {
         item.translatedText = translatedText;
@@ -1669,19 +1123,13 @@
         if (direction) item.direction = direction;
         if (detectedLanguage) item.detectedLanguage = detectedLanguage;
 
-        // 言語判定に基づく列ラベルの動的更新
         const origLabelEl = document.getElementById(`${cardId}_orig_label`);
         const transLabelEl = document.getElementById(`${cardId}_trans_label`);
         const isJaToEn = (item.direction === 'JA_TO_EN');
 
-        if (origLabelEl) {
-          origLabelEl.textContent = isJaToEn ? '原文 (日本語)' : '原文 (英語・現地語)';
-        }
-        if (transLabelEl) {
-          transLabelEl.textContent = isJaToEn ? '英語訳 (English)' : '日本語訳 (Japanese)';
-        }
+        if (origLabelEl) origLabelEl.textContent = isJaToEn ? '原文 (日本語)' : '原文 (英語・現地語)';
+        if (transLabelEl) transLabelEl.textContent = isJaToEn ? '英語訳 (English)' : '日本語訳 (Japanese)';
 
-        // 話者が未設定または初期状態の場合、言語から自動設定
         const spkEl = document.getElementById(`${cardId}_spk`);
         if (item.autoSpeaker && spkEl) {
           item.speaker = isJaToEn ? 'Auditor (監査員)' : 'Yard Rep (ヤード担当者)';
@@ -1695,17 +1143,12 @@
       }
     }
 
-    // --- Card In-line Actions (PC & Backlog Integration) ---
-
-    // 話者の切替
     window.toggleSpeaker = function(cardId) {
       const item = transcriptStore.find(t => t.id === cardId);
       if (!item) return;
-
       item.autoSpeaker = false;
       const currentIndex = SPEAKER_ROLES.indexOf(item.speaker || SPEAKER_ROLES[0]);
-      const nextIndex = (currentIndex + 1) % SPEAKER_ROLES.length;
-      item.speaker = SPEAKER_ROLES[nextIndex];
+      item.speaker = SPEAKER_ROLES[(currentIndex + 1) % SPEAKER_ROLES.length];
       persistTranscripts();
 
       const spkEl = document.getElementById(`${cardId}_spk`);
@@ -1716,7 +1159,6 @@
       }
     };
 
-    // 編集モード切替
     window.toggleEditCard = function(cardId) {
       const viewEl = document.getElementById(`${cardId}_view`);
       const editEl = document.getElementById(`${cardId}_edit`);
@@ -1741,7 +1183,6 @@
 
       const editOrigEl = document.getElementById(`${cardId}_edit_orig`);
       const editTransEl = document.getElementById(`${cardId}_edit_trans`);
-      
       if (editOrigEl && editTransEl) {
         item.originalText = editOrigEl.value.trim();
         item.translatedText = editTransEl.value.trim();
@@ -1752,32 +1193,27 @@
         if (origEl) origEl.textContent = item.originalText;
         if (transEl) transEl.textContent = item.translatedText;
       }
-
       window.cancelEditCard(cardId);
     };
 
-    // 手動再翻訳
     window.retryTranslation = function(cardId) {
       const item = transcriptStore.find(t => t.id === cardId);
       if (!item || !item.originalText) return;
 
       item.isTranslating = true;
       const transEl = document.getElementById(`${cardId}_trans`);
-      if (transEl) {
-        transEl.innerHTML = '<span class="translating-spinner">⏳ 辞書参照・再翻訳中...</span>';
-      }
+      if (transEl) transEl.innerHTML = '<span class="translating-spinner">⏳ 辞書参照・再翻訳中...</span>';
+      
       const currentDir = directionSelect ? directionSelect.value : (item.direction || 'EN_TO_JA');
       item.direction = currentDir;
       persistTranscripts();
       processPass2(cardId, item.originalText, categorySelect.value, currentDir);
     };
 
-    // 発話カード削除
     window.deleteCard = function(cardId) {
       if (!confirm('この発話記録を削除しますか？')) return;
       transcriptStore = transcriptStore.filter(t => t.id !== cardId);
       persistTranscripts();
-
       const cardEl = document.getElementById(cardId);
       if (cardEl) cardEl.remove();
 
@@ -1791,7 +1227,6 @@
       localStorage.setItem('transcript_cache', JSON.stringify(transcriptStore));
     }
 
-    // キャッシュからの復元（重複バグ解消版）
     function loadTranscriptsFromCache() {
       const cached = localStorage.getItem('transcript_cache');
       if (cached) {
@@ -1801,17 +1236,9 @@
             transcriptStore = parsed;
             emptyState.style.display = 'none';
             saveBtn.disabled = false;
-            transcriptStore.forEach(t => {
-              renderCardToDOM(t);
-              // [FIX] リロード等で「翻訳中...」のまま固まったカードを自動的に再送信する
-              if (t.isTranslating && t.originalText) {
-                processPass2(t.id, t.originalText, categorySelect.value, t.direction);
-              }
-            });
+            transcriptStore.forEach(t => renderCardToDOM(t));
           }
-        } catch (e) {
-          console.warn('Failed to load cache:', e);
-        }
+        } catch (e) {}
       }
     }
 
@@ -1827,7 +1254,6 @@
       }
     });
 
-    // --- Markdown Export (Backlog / Clipboard) ---
     copyMdBtn.addEventListener('click', () => {
       if (transcriptStore.length === 0) {
         alert('コピーする発話ログがありません。');
@@ -1835,7 +1261,7 @@
       }
       let md = `# 現地監査 議事録 (${categorySelect.value})\n`;
       md += `作成日時: ${new Date().toLocaleString('ja-JP')} | 総発話数: ${transcriptStore.length}\n\n`;
-      md += '| 時刻 | 話者 | 原文 (Original) | 日本語訳 (Japanese) |\n';
+      md += '| 時刻 | 話者 | 原文 (Original) | 訳文 (Translation) |\n';
       md += '| :--- | :--- | :--- | :--- |\n';
       transcriptStore.forEach(t => {
         const time = t.time || '';
@@ -1846,13 +1272,12 @@
       });
 
       navigator.clipboard.writeText(md).then(() => {
-        alert('議事録をMarkdown形式でクリップボードにコピーしました！\nBacklogや議事録メモにそのまま貼り付け可能です。');
+        alert('議事録をMarkdown形式でクリップボードにコピーしました！');
       }).catch(err => {
-        alert('クリップボードへのコピーに失敗しました: ' + err);
+        alert('コピーに失敗しました: ' + err);
       });
     });
 
-    // --- Google Document Save ---
     saveBtn.addEventListener('click', () => {
       if (transcriptStore.length === 0) return;
       saveBtn.disabled = true;
@@ -1864,7 +1289,7 @@
         (res) => {
           saveBtn.disabled = false;
           saveBtn.innerHTML = '<span>💾 Google ドキュメントに保存</span>';
-          if (confirm(`議事録ドキュメントを保存しました！\nフォルダ: ${res.folderName}\nファイル: ${res.docName}\n\n今すぐGoogleドキュメントを開きますか？`)) {
+          if (confirm(`議事録ドキュメントを保存しました！\nフォルダ: ${res.folderName}\nファイル: ${res.docName}\n\n今すぐ開きますか？`)) {
             window.open(res.docUrl, '_blank');
           }
         },
@@ -1876,64 +1301,25 @@
       );
     });
 
-    // --- Settings Modal Events ---
     settingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
     closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
 
     saveSettingsBtn.addEventListener('click', () => {
-      localStorage.setItem('local_whisper_url', localEndpointInput.value.trim());
-      if (gasApiUrlInput) {
-        localStorage.setItem('gas_api_url', gasApiUrlInput.value.trim());
-      }
-      if (directApiKeyInput) {
-        localStorage.setItem('gemini_api_key', directApiKeyInput.value.trim());
-      }
-      if (modalDirectionSelect) {
-        const val = modalDirectionSelect.value;
-        if (directionSelect) directionSelect.value = val;
-        localStorage.setItem('trans_direction', val);
-      }
+      if (localEndpointInput) localStorage.setItem('local_whisper_url', localEndpointInput.value.trim());
+      if (gasApiUrlInput) localStorage.setItem('gas_api_url', gasApiUrlInput.value.trim());
+      if (directApiKeyInput) localStorage.setItem('gemini_api_key', directApiKeyInput.value.trim());
       settingsModal.classList.remove('open');
       alert('設定を保存しました。');
     });
 
-    testLocalBtn.addEventListener('click', async () => {
-      const url = localEndpointInput.value.trim();
-      if (!url) {
-        testResult.textContent = 'URLを入力してください';
-        testResult.style.color = 'var(--danger)';
-        return;
-      }
-      testResult.textContent = '接続中...';
-      try {
-        // [FIX] 修正前は .replace().replace() が同一文字列を2回置換しようとしており、
-        //       2回目は常に不発（無意味）だった。/transcribe を含まないURLでも
-        //       素直に /health にフォールバックできるよう明示的に分岐する。
-        const healthUrl = url.includes('/transcribe')
-          ? url.replace('/transcribe', '/health')
-          : url.replace(/\/+$/, '') + '/health';
-        const res = await fetch(healthUrl, { method: 'GET' });
-        testResult.textContent = '✓ 接続成功';
-        testResult.style.color = 'var(--success)';
-      } catch (err) {
-        testResult.textContent = '✗ 接続失敗 (CORS/オフライン確認)';
-        testResult.style.color = 'var(--danger)';
-      }
-    });
-
     refreshCacheBtn.addEventListener('click', () => {
       cacheResult.textContent = 'キャッシュ更新中...';
-      callApi(
-        'refreshGlossaryCache',
-        {},
-        (res) => {
-          cacheResult.textContent = '✓ ' + res.message;
-        },
-        (err) => {
-          cacheResult.textContent = 'エラー: ' + err.message;
-          cacheResult.style.color = 'var(--danger)';
-        }
-      );
+      callApi('refreshGlossaryCache', {}, (res) => {
+        cacheResult.textContent = '✓ ' + res.message;
+      }, (err) => {
+        cacheResult.textContent = 'エラー: ' + err.message;
+        cacheResult.style.color = 'var(--danger)';
+      });
     });
 
     function escapeHtml(str) {
